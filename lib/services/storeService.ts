@@ -134,6 +134,12 @@ export async function createStore(store: Omit<Store, 'id'>) {
         slug: store.slug,
         description: store.description,
         store_logo_url: store.logoUrl,
+        website_url: store.websiteUrl,
+        tracking_link: store.trackingLink,
+        merchant_id: store.merchantId,
+        network_id: store.networkId,
+        country: store.country || 'US',
+        status: store.status || 'active',
         voucher_text: store.voucherText,
         seoTitle: store.seoTitle,
         seoDescription: store.seoDescription,
@@ -141,6 +147,7 @@ export async function createStore(store: Omit<Store, 'id'>) {
         layout_position: store.layoutPosition,
         category_id: store.categoryId,
         created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       })
       .select()
       .single()
@@ -275,6 +282,9 @@ export async function updateStore(id: string, updates: Partial<Store>) {
     if (updates.merchantId !== undefined) updateData.merchant_id = updates.merchantId
     if (updates.networkId !== undefined) updateData.network_id = updates.networkId
     if (updates.trackingLink !== undefined) updateData.tracking_link = updates.trackingLink
+    if (updates.websiteUrl !== undefined) updateData.website_url = updates.websiteUrl
+    if (updates.country !== undefined) updateData.country = updates.country
+    if (updates.status !== undefined) updateData.status = updates.status
     if (updates.couponOrder !== undefined) updateData.coupon_order = updates.couponOrder
 
     const { error } = await supabase
