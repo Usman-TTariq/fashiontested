@@ -11,7 +11,7 @@ export interface Notification {
   link?: string; // Optional link to navigate
 }
 
-const NOTIFICATIONS_KEY = 'Sample Store 2_notifications';
+const NOTIFICATIONS_KEY = 'coupachu_notifications';
 
 // Get all notifications
 export function getNotifications(): Notification[] {
@@ -112,7 +112,7 @@ export function initializeSampleNotifications(): void {
   const existing = getNotifications();
   if (existing.length === 0) {
     addNotification({
-      title: 'Welcome to Sample Store 2!',
+      title: 'Welcome to COUPACHU!',
       message: 'Discover amazing deals and save money with our exclusive coupons.',
       type: 'info'
     });

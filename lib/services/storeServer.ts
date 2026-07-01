@@ -14,8 +14,6 @@ function mapRowToStore(row: Record<string, unknown>): Store {
     logoUrl: (row.store_logo_url || row.logo_url) as string | undefined,
     websiteUrl: row.website_url as string | undefined,
     trackingLink: row.tracking_link as string | undefined,
-    merchantId: row.merchant_id as string | undefined,
-    networkId: row.network_id as string | undefined,
     country: row.country as string | undefined,
     status: row.status as string | undefined,
     voucherText: row.voucher_text as string | undefined,

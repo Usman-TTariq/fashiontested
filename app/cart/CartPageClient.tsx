@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getCartItems, removeFromCart, clearCart, CartItem } from '@/lib/services/cartService';
 import Navbar from '@/app/components/Navbar';
-import Footer from '@/app/components/Footer';
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -53,7 +52,7 @@ export default function CartPage() {
           <div className="flex items-center justify-between mb-6 sm:mb-8">
             <div>
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-2">
-                My <span className="text-[#221E1D]">Cart</span>
+                My <span className="text-[#C7395F]">Cart</span>
               </h1>
               <p className="text-gray-600 text-sm sm:text-base">
                 {cartItems.length} {cartItems.length === 1 ? 'coupon' : 'coupons'} saved
@@ -82,7 +81,7 @@ export default function CartPage() {
               <p className="text-gray-400 text-sm mb-6">Start adding coupons to your cart!</p>
               <Link
                 href="/"
-                className="inline-block px-6 py-3 bg-gradient-to-r from-[#221E1D] to-brand-navy-light text-white font-semibold rounded-lg hover:from-brand-navy-dark hover:to-[#221E1D] transition-all"
+                className="inline-block px-6 py-3 bg-gradient-to-r from-[#C7395F] to-brand-navy-light text-white font-semibold rounded-lg hover:from-brand-navy-dark hover:to-[#C7395F] transition-all"
               >
                 Browse Coupons
               </Link>
@@ -92,7 +91,7 @@ export default function CartPage() {
               {cartItems.map((item) => (
                 <div
                   key={item.couponId}
-                  className="group bg-white border border-gray-200 rounded-lg p-4 sm:p-6 hover:border-[#221E1D] hover:shadow-lg transition-all duration-300 relative"
+                  className="group bg-white border border-gray-200 rounded-lg p-4 sm:p-6 hover:border-[#C7395F] hover:shadow-lg transition-all duration-300 relative"
                 >
                   <button
                     onClick={() => handleRemove(item.couponId)}
@@ -119,7 +118,7 @@ export default function CartPage() {
                   )}
 
                   <div className="text-center">
-                    <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-[#221E1D] transition-colors">
+                    <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-[#C7395F] transition-colors">
                       {item.code}
                     </h3>
                     {item.storeName && (
@@ -147,8 +146,6 @@ export default function CartPage() {
           )}
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { getCoupons, Coupon } from '@/lib/services/couponService';
 import { getStores, Store } from '@/lib/services/storeService';
+import { getCouponDisplayTitle } from '@/lib/utils/couponDisplay';
 
 export default function DashboardPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -114,11 +115,11 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="bg-brand-cyan/10 p-4 sm:p-6 rounded-lg border border-brand-cyan/25">
+            <div className="bg-green-50 p-4 sm:p-6 rounded-lg border border-green-200">
               <div className="text-gray-600 text-xs sm:text-sm font-semibold">
                 Active Coupons
               </div>
-              <div className="text-2xl sm:text-3xl font-bold text-brand-navy mt-2">
+              <div className="text-2xl sm:text-3xl font-bold text-green-600 mt-2">
                 {stats.activeCoupons}
               </div>
             </div>
@@ -174,7 +175,7 @@ export default function DashboardPage() {
                     {filteredCoupons.slice(0, 5).map((coupon) => (
                       <tr key={coupon.id} className="border-b hover:bg-gray-50">
                         <td className="px-2 sm:px-4 py-2 text-sm font-semibold text-gray-900">
-                          {coupon.storeName || 'N/A'}
+                          {getCouponDisplayTitle(coupon)}
                         </td>
                         <td className="px-2 sm:px-4 py-2 font-mono font-semibold">
                           {coupon.code || 'N/A'}
@@ -187,7 +188,7 @@ export default function DashboardPage() {
                           <span
                             className={`px-2 py-1 rounded text-xs font-semibold ${
                               coupon.isActive
-                                ? 'bg-brand-cyan/15 text-brand-navy-dark'
+                                ? 'bg-green-100 text-green-700'
                                 : 'bg-gray-100 text-gray-700'
                             }`}
                           >

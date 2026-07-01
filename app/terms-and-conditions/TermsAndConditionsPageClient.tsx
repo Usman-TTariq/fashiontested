@@ -2,7 +2,6 @@
 
 import Navbar from '@/app/components/Navbar';
 import Breadcrumbs from '@/app/components/Breadcrumbs';
-import Footer from '@/app/components/Footer';
 import { Shield, FileText, CheckCircle, AlertCircle, Info, BookOpen } from 'lucide-react';
 
 export default function TermsAndConditionsPage() {
@@ -18,12 +17,12 @@ export default function TermsAndConditionsPage() {
         <div className="absolute bottom-0 left-0 w-72 h-72 bg-brand-cyan/20 rounded-full -ml-36 -mb-36 blur-3xl"></div>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-cyan/15 text-[#221E1D] text-sm font-semibold mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-cyan/15 text-[#C7395F] text-sm font-semibold mb-6">
             <Shield className="w-4 h-4" />
             <span>Legal Agreement</span>
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
-            Terms & <span className="text-[#221E1D]">Conditions</span>
+            Terms & <span className="text-[#C7395F]">Conditions</span>
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
             Please read these terms carefully before using our service. Last updated: January 2025
@@ -37,7 +36,7 @@ export default function TermsAndConditionsPage() {
 
             <section className="bg-white border border-brand-cyan/10 rounded-2xl p-8 sm:p-10 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-brand-cyan/10 rounded-lg flex items-center justify-center text-[#221E1D]">
+                <div className="w-10 h-10 bg-brand-cyan/10 rounded-lg flex items-center justify-center text-[#C7395F]">
                   <FileText className="w-6 h-6" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 m-0">
@@ -45,7 +44,7 @@ export default function TermsAndConditionsPage() {
                 </h2>
               </div>
               <p className="text-gray-700 leading-relaxed mb-4">
-                By accessing and using Sample Store 2 ("the Website"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
+                By accessing and using Favento ("the Website"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
               </p>
               <p className="text-gray-700 leading-relaxed m-0">
                 These Terms and Conditions ("Terms") govern your access to and use of our website, services, and applications. By using our services, you agree to comply with and be bound by these Terms.
@@ -54,7 +53,7 @@ export default function TermsAndConditionsPage() {
 
             <section className="bg-white border border-brand-cyan/10 rounded-2xl p-8 sm:p-10 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-brand-cyan/10 rounded-lg flex items-center justify-center text-[#221E1D]">
+                <div className="w-10 h-10 bg-brand-cyan/10 rounded-lg flex items-center justify-center text-[#C7395F]">
                   <BookOpen className="w-6 h-6" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 m-0">
@@ -64,7 +63,7 @@ export default function TermsAndConditionsPage() {
               <div className="space-y-6">
                 <div>
                   <h3 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#221E1D]"></span>
+                    <span className="w-2 h-2 rounded-full bg-[#C7395F]"></span>
                     2.1 Eligibility
                   </h3>
                   <p className="text-gray-700 leading-relaxed m-0">
@@ -74,7 +73,7 @@ export default function TermsAndConditionsPage() {
 
                 <div>
                   <h3 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#221E1D]"></span>
+                    <span className="w-2 h-2 rounded-full bg-[#C7395F]"></span>
                     2.2 Acceptable Use
                   </h3>
                   <p className="text-gray-700 leading-relaxed mb-4">
@@ -104,7 +103,7 @@ export default function TermsAndConditionsPage() {
 
             <section className="bg-white border border-brand-cyan/10 rounded-2xl p-8 sm:p-10 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-brand-cyan/10 rounded-lg flex items-center justify-center text-[#221E1D]">
+                <div className="w-10 h-10 bg-brand-cyan/10 rounded-lg flex items-center justify-center text-[#C7395F]">
                   <Info className="w-6 h-6" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 m-0">
@@ -114,7 +113,7 @@ export default function TermsAndConditionsPage() {
               <div className="space-y-6">
                 <div>
                   <h3 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#221E1D]"></span>
+                    <span className="w-2 h-2 rounded-full bg-[#C7395F]"></span>
                     3.1 Availability
                   </h3>
                   <p className="text-gray-700 leading-relaxed m-0">
@@ -122,12 +121,12 @@ export default function TermsAndConditionsPage() {
                   </p>
                 </div>
 
-                <div className="bg-brand-cyan/10 rounded-xl p-6 border-l-4 border-[#221E1D]">
-                  <h3 className="text-xl font-bold text-[#221E1D] mb-3 flex items-center gap-2 m-0">
+                <div className="bg-brand-cyan/10 rounded-xl p-6 border-l-4 border-[#C7395F]">
+                  <h3 className="text-xl font-bold text-[#C7395F] mb-3 flex items-center gap-2 m-0">
                     <AlertCircle className="w-5 h-5" />
                     3.2 No Warranty
                   </h3>
-                  <p className="text-[#221E1D]/80 leading-relaxed m-0 mt-3 font-medium">
+                  <p className="text-[#C7395F]/80 leading-relaxed m-0 mt-3 font-medium">
                     We do not warrant or guarantee that any coupon code will work, be valid, or provide the discount advertised. The validity and applicability of coupon codes are determined solely by the retailers.
                   </p>
                 </div>
@@ -137,7 +136,7 @@ export default function TermsAndConditionsPage() {
             {/* Rest of the sections following the same pattern */}
             <section className="bg-white border border-brand-cyan/10 rounded-2xl p-8 sm:p-10 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-brand-cyan/10 rounded-lg flex items-center justify-center text-[#221E1D]">
+                <div className="w-10 h-10 bg-brand-cyan/10 rounded-lg flex items-center justify-center text-[#C7395F]">
                   <Shield className="w-6 h-6" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 m-0">
@@ -145,11 +144,11 @@ export default function TermsAndConditionsPage() {
                 </h2>
               </div>
               <p className="text-gray-700 leading-relaxed m-0">
-                All content on this website, including but not limited to text, graphics, logos, images, and software, is the property of Sample Store 2 or its content suppliers and is protected by copyright, trademark, and other intellectual property laws.
+                All content on this website, including but not limited to text, graphics, logos, images, and software, is the property of Favento or its content suppliers and is protected by copyright, trademark, and other intellectual property laws.
               </p>
             </section>
 
-            <section className="bg-[#221E1D] rounded-2xl p-8 sm:p-12 text-white relative overflow-hidden">
+            <section className="bg-[#C7395F] rounded-2xl p-8 sm:p-12 text-white relative overflow-hidden">
               <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -mr-24 -mt-24"></div>
               <div className="relative z-10">
                 <h2 className="text-3xl font-bold mb-6">Need Legal Help?</h2>
@@ -163,7 +162,7 @@ export default function TermsAndConditionsPage() {
                     </div>
                     <div>
                       <p className="text-brand-cyan/80 text-sm font-medium">Email Support</p>
-                      <p className="font-bold">legal@samplestore2.com</p>
+                      <p className="font-bold">legal@favento.com</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -172,7 +171,7 @@ export default function TermsAndConditionsPage() {
                     </div>
                     <div>
                       <p className="text-brand-cyan/80 text-sm font-medium">Our Website</p>
-                      <p className="font-bold">www.samplestore2.com</p>
+                      <p className="font-bold">www.favento.com</p>
                     </div>
                   </div>
                 </div>
@@ -182,8 +181,6 @@ export default function TermsAndConditionsPage() {
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }

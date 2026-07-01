@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { getNewsById, NewsArticle } from '@/lib/services/newsService';
 import Navbar from '@/app/components/Navbar';
-import Footer from '@/app/components/Footer';
 import Link from 'next/link';
+import { formatArticleMetaLine } from '@/lib/utils/articleMeta';
 
 export default function BlogPageClient({ params }: { params: { id: string } }) {
   const id = params.id;
@@ -50,11 +50,10 @@ export default function BlogPageClient({ params }: { params: { id: string } }) {
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#221E1D] mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C7395F] mx-auto mb-4"></div>
             <p className="text-gray-600">Loading article...</p>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -69,13 +68,12 @@ export default function BlogPageClient({ params }: { params: { id: string } }) {
             <p className="text-gray-600 mb-4">The article you're looking for doesn't exist.</p>
             <Link
               href="/blogs"
-              className="bg-[#221E1D] text-white px-6 py-2 rounded-lg hover:bg-brand-navy-dark transition-colors inline-block"
+              className="bg-[#C7395F] text-white px-6 py-2 rounded-lg hover:bg-brand-navy-dark transition-colors inline-block"
             >
               Back to Blogs
             </Link>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -97,13 +95,13 @@ export default function BlogPageClient({ params }: { params: { id: string } }) {
               const parent = target.parentElement;
               if (parent) {
                 parent.className = 'w-full h-64 sm:h-80 md:h-96 lg:h-[500px] bg-gradient-to-br from-brand-cyan/10 via-white to-brand-cyan/15 flex items-center justify-center';
-                parent.innerHTML = '<svg class="w-24 h-24 text-brand-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>';
+                parent.innerHTML = '<svg class="w-24 h-24 text-brand-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>';
               }
             }}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-brand-cyan/10 via-white to-brand-cyan/15 flex items-center justify-center">
-            <svg className="w-24 h-24 text-brand-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-24 h-24 text-brand-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
@@ -111,11 +109,19 @@ export default function BlogPageClient({ params }: { params: { id: string } }) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
         <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 md:p-12">
           <div className="max-w-4xl mx-auto">
-            {formatDate(article.date, article.createdAt) && (
-              <div className="inline-block bg-gradient-to-r from-[#221E1D] to-brand-navy-light text-white text-xs sm:text-sm font-bold px-3 py-1.5 rounded-full mb-4 shadow-lg">
-                {formatDate(article.date, article.createdAt)}
-              </div>
-            )}
+            {(() => {
+              const metaLine = formatArticleMetaLine({
+                category: article.category,
+                date: formatDate(article.date, article.createdAt) || undefined,
+                author: article.author,
+              })
+              if (!metaLine) return null
+              return (
+                <p className="mb-3 text-[11px] sm:text-xs font-semibold tracking-[0.1em] text-white/90 uppercase">
+                  {metaLine}
+                </p>
+              )
+            })()}
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 drop-shadow-lg">
               {article.title}
             </h1>
@@ -129,9 +135,9 @@ export default function BlogPageClient({ params }: { params: { id: string } }) {
           {/* Breadcrumb */}
           <nav className="mb-6 sm:mb-8">
             <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Link href="/" className="hover:text-[#221E1D] transition-colors">Home</Link>
+              <Link href="/" className="hover:text-[#C7395F] transition-colors">Home</Link>
               <span>/</span>
-              <Link href="/blogs" className="hover:text-[#221E1D] transition-colors">Blogs</Link>
+              <Link href="/blogs" className="hover:text-[#C7395F] transition-colors">Blogs</Link>
               <span>/</span>
               <span className="text-gray-900 font-medium">{article.title}</span>
             </div>
@@ -141,7 +147,7 @@ export default function BlogPageClient({ params }: { params: { id: string } }) {
           <article className="prose prose-lg sm:prose-xl max-w-none">
             {/* Description - Show as intro if we have content */}
             {article.content && article.description && (
-              <div className="mb-10 p-6 sm:p-8 bg-gradient-to-r from-brand-cyan/10 to-brand-cyan/15 rounded-xl border-l-4 border-[#221E1D] shadow-sm">
+              <div className="mb-10 p-6 sm:p-8 bg-gradient-to-r from-brand-cyan/10 to-brand-cyan/15 rounded-xl border-l-4 border-[#C7395F] shadow-sm">
                 <p className="text-lg sm:text-xl md:text-2xl text-gray-700 leading-relaxed font-medium">
                   {article.description}
                 </p>
@@ -182,7 +188,7 @@ export default function BlogPageClient({ params }: { params: { id: string } }) {
                       {/* Section 1: Understanding Coupons */}
                       <div className="bg-white rounded-xl p-6 sm:p-8 md:p-10 border border-gray-200 shadow-sm">
                         <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-[#221E1D] to-brand-navy-light rounded-lg flex items-center justify-center">
+                          <div className="w-12 h-12 bg-gradient-to-br from-[#C7395F] to-brand-navy-light rounded-lg flex items-center justify-center">
                             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
@@ -194,7 +200,7 @@ export default function BlogPageClient({ params }: { params: { id: string } }) {
                             Coupons have evolved significantly from simple paper cutouts to sophisticated digital codes that can save you hundreds of dollars annually. Understanding how to effectively use coupons is the first step toward becoming a savvy shopper.
                           </p>
                           <p>
-                            Modern coupon platforms like Sample Store 2 offer a wide range of discounts from top retailers. These platforms aggregate the best deals, making it easier than ever to find savings on your favorite products and services.
+                            Modern coupon platforms like Favento offer a wide range of discounts from top retailers. These platforms aggregate the best deals, making it easier than ever to find savings on your favorite products and services.
                           </p>
                           <p>
                             The key to maximizing your savings lies in understanding different types of coupons, knowing when to use them, and combining them with other promotional offers for maximum benefit.
@@ -211,7 +217,7 @@ export default function BlogPageClient({ params }: { params: { id: string } }) {
                           <div className="bg-white rounded-lg p-6 border border-gray-200">
                             <div className="flex items-start gap-4">
                               <div className="w-12 h-12 bg-brand-cyan/15 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <svg className="w-6 h-6 text-[#221E1D]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-6 h-6 text-[#C7395F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                               </div>
@@ -281,7 +287,7 @@ export default function BlogPageClient({ params }: { params: { id: string } }) {
                         </h3>
                         <div className="space-y-6">
                           <div className="flex gap-4">
-                            <div className="flex-shrink-0 w-8 h-8 bg-[#221E1D] text-white rounded-full flex items-center justify-center font-bold">
+                            <div className="flex-shrink-0 w-8 h-8 bg-[#C7395F] text-white rounded-full flex items-center justify-center font-bold">
                               1
                             </div>
                             <div>
@@ -293,7 +299,7 @@ export default function BlogPageClient({ params }: { params: { id: string } }) {
                           </div>
 
                           <div className="flex gap-4">
-                            <div className="flex-shrink-0 w-8 h-8 bg-[#221E1D] text-white rounded-full flex items-center justify-center font-bold">
+                            <div className="flex-shrink-0 w-8 h-8 bg-[#C7395F] text-white rounded-full flex items-center justify-center font-bold">
                               2
                             </div>
                             <div>
@@ -305,7 +311,7 @@ export default function BlogPageClient({ params }: { params: { id: string } }) {
                           </div>
 
                           <div className="flex gap-4">
-                            <div className="flex-shrink-0 w-8 h-8 bg-[#221E1D] text-white rounded-full flex items-center justify-center font-bold">
+                            <div className="flex-shrink-0 w-8 h-8 bg-[#C7395F] text-white rounded-full flex items-center justify-center font-bold">
                               3
                             </div>
                             <div>
@@ -317,7 +323,7 @@ export default function BlogPageClient({ params }: { params: { id: string } }) {
                           </div>
 
                           <div className="flex gap-4">
-                            <div className="flex-shrink-0 w-8 h-8 bg-[#221E1D] text-white rounded-full flex items-center justify-center font-bold">
+                            <div className="flex-shrink-0 w-8 h-8 bg-[#C7395F] text-white rounded-full flex items-center justify-center font-bold">
                               4
                             </div>
                             <div>
@@ -377,12 +383,12 @@ export default function BlogPageClient({ params }: { params: { id: string } }) {
                         <p className="text-lg sm:text-xl leading-relaxed text-gray-700 mb-6">
                           Remember, the goal isn't just to save money, but to make smart purchasing decisions that align with your needs and budget. With the right approach, coupons can help you get more value from every purchase.
                         </p>
-                        <div className="bg-gradient-to-r from-[#221E1D] to-brand-navy-light rounded-lg p-6 text-white">
+                        <div className="bg-gradient-to-r from-[#C7395F] to-brand-navy-light rounded-lg p-6 text-white">
                           <p className="text-lg sm:text-xl font-semibold mb-2">
                             Ready to Start Saving?
                           </p>
                           <p className="text-base sm:text-lg opacity-90">
-                            Explore our collection of verified coupons and exclusive deals to start saving on your next purchase. Join thousands of smart shoppers who are already maximizing their savings with Sample Store 2.
+                            Explore our collection of verified coupons and exclusive deals to start saving on your next purchase. Join thousands of smart shoppers who are already maximizing their savings with Favento.
                           </p>
                         </div>
                       </div>
@@ -405,7 +411,7 @@ export default function BlogPageClient({ params }: { params: { id: string } }) {
             <div className="mt-12 pt-8 border-t border-gray-200">
               <Link
                 href="/blogs"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-[#221E1D] to-brand-navy-light hover:from-brand-navy-dark hover:to-[#221E1D] text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-[#C7395F] to-brand-navy-light hover:from-brand-navy-dark hover:to-[#C7395F] text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -418,7 +424,6 @@ export default function BlogPageClient({ params }: { params: { id: string } }) {
       </div>
 
       {/* Footer */}
-      <Footer />
     </div>
   );
 }

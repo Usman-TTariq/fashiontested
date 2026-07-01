@@ -1,32 +1,55 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
-  getCouponById,
-  updateCoupon,
   Coupon,
 } from '@/lib/services/couponService';
 import { getCategories, Category } from '@/lib/services/categoryService';
 import { extractOriginalCloudinaryUrl, isCloudinaryUrl } from '@/lib/utils/cloudinary';
+import { normalizeRedirectUrl } from '@/lib/utils/url';
+import { resolveCouponExpiryDate } from '@/lib/utils/couponExpiry';
 import { getStores, Store } from '@/lib/services/storeService';
 
 export default function EditCouponPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const couponId = params.id as string;
+  const returnStoreId = searchParams.get('returnStore')?.trim() || '';
+  const returnToStoreCoupons = returnStoreId
+    ? `/admin/stores?openCoupons=${encodeURIComponent(returnStoreId)}`
+    : null;
+
+  const returnToCouponsList = (() => {
+    const params = new URLSearchParams();
+    const listSearch = searchParams.get('search')?.trim();
+    const listPage = searchParams.get('page')?.trim();
+    if (listSearch) params.set('search', listSearch);
+    if (listPage) params.set('page', listPage);
+    const qs = params.toString();
+    return qs ? `/admin/coupons?${qs}` : '/admin/coupons';
+  })();
+
+  const navigateBack = () => {
+    if (returnToStoreCoupons) {
+      router.push(returnToStoreCoupons);
+    } else {
+      router.push(returnToCouponsList);
+    }
+  };
 
   const [coupon, setCoupon] = useState<Coupon | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<Partial<Coupon>>({});
+  const [redirectUrl, setRedirectUrl] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [extractedLogoUrl, setExtractedLogoUrl] = useState<string | null>(null);
   const [stores, setStores] = useState<Store[]>([]);
   const [selectedStoreIds, setSelectedStoreIds] = useState<string[]>([]);
   const [isStoreDropdownOpen, setIsStoreDropdownOpen] = useState(false);
-  const [isSupabaseCoupon, setIsSupabaseCoupon] = useState(false);
   const storeDropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -47,136 +70,148 @@ export default function EditCouponPage() {
   }, [isStoreDropdownOpen]);
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchData = async () => {
-      const [firebaseCouponData, categoriesData, storesData] = await Promise.all([
-        getCouponById(couponId),
-        getCategories(),
-        getStores()
-      ]);
+      setLoading(true);
 
-      let couponData: Coupon | null = firebaseCouponData;
-      let fromSupabase = false;
+      try {
+        const res = await fetch(
+          `/api/coupons/supabase/by-id/${encodeURIComponent(couponId)}?_=${Date.now()}`,
+          { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } }
+        );
+        const data = await res.json();
 
-      // If not found in Firebase, try Supabase by-id API
-      if (!couponData) {
-        try {
-          const res = await fetch(`/api/coupons/supabase/by-id/${encodeURIComponent(couponId)}`);
-          if (res.ok) {
-            const data = await res.json();
-            if (data?.success && data.coupon) {
-              couponData = data.coupon as Coupon;
-              fromSupabase = true;
+        if (cancelled) return;
+
+        const [categoriesData, storesData] = await Promise.all([
+          getCategories(),
+          getStores(),
+        ]);
+
+        if (cancelled) return;
+
+        if (data?.success && data.coupon) {
+          const couponData = data.coupon as Coupon;
+          setCoupon(couponData);
+          setFormData({
+            ...couponData,
+            couponType: couponData.couponType || 'code',
+          });
+          setRedirectUrl(couponData.url || '');
+          setSelectedStoreIds(couponData.storeIds || []);
+          if (couponData.logoUrl) {
+            setLogoUrl(couponData.logoUrl);
+            if (isCloudinaryUrl(couponData.logoUrl)) {
+              setExtractedLogoUrl(extractOriginalCloudinaryUrl(couponData.logoUrl));
             }
           }
-        } catch (err) {
-          console.error('Error fetching Supabase coupon by id for admin edit:', err);
+        } else {
+          setCoupon(null);
         }
-      }
 
-      if (couponData) {
-        setCoupon(couponData);
-        setIsSupabaseCoupon(fromSupabase);
-        setFormData({
-          ...couponData,
-          couponType: couponData.couponType || 'code', // Default to 'code' if not set
-        });
-        setSelectedStoreIds(couponData.storeIds || []);
-        if (couponData.logoUrl) {
-          setLogoUrl(couponData.logoUrl);
-          if (isCloudinaryUrl(couponData.logoUrl)) {
-            setExtractedLogoUrl(extractOriginalCloudinaryUrl(couponData.logoUrl));
-          }
+        setCategories(categoriesData);
+        setStores(storesData);
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Error fetching coupon by id for admin edit:', err);
+          setCoupon(null);
         }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      setCategories(categoriesData);
-      setStores(storesData);
-      setLoading(false);
     };
+
     fetchData();
+    return () => {
+      cancelled = true;
+    };
   }, [couponId]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate coupon code only if coupon type is 'code'
     if (formData.couponType === 'code' && (!formData.code || formData.code.trim() === '')) {
       alert('Please enter a coupon code (required for code type coupons)');
       return;
     }
 
-    setSaving(true);
-
-    // Extract original URL if it's a Cloudinary URL
-    const logoUrlToSave = logoUrl ? extractOriginalCloudinaryUrl(logoUrl) : undefined;
-    const updates: any = {
-      ...formData,
-      discountType: 'percentage', // Always use percentage
-      couponType: formData.couponType || 'code',
-      ...(logoUrlToSave ? { logoUrl: logoUrlToSave } : {}),
-    };
-
-    // For deal type, don't include code field
-    if (formData.couponType === 'deal') {
-      delete updates.code;
-    }
-
-    // Only include storeIds if there are selected stores
-    if (selectedStoreIds.length > 0) {
-      updates.storeIds = selectedStoreIds;
-    }
-
-    if (isSupabaseCoupon) {
-      // Update via Supabase PATCH API
-      try {
-        const payload = {
-          store_id: selectedStoreIds[0] ? Number(selectedStoreIds[0]) || selectedStoreIds[0] : undefined,
-          code: updates.code,
-          categoryId: updates.categoryId,
-          currentUses: updates.currentUses,
-          description: updates.description,
-          discount: updates.discount,
-          discountType: updates.discountType,
-          expiryDate: updates.expiryDate,
-          getCodeText: updates.getCodeText,
-          getDealText: updates.getDealText,
-          isActive: updates.isActive,
-          isLatest: updates.isLatest,
-          isPopular: updates.isPopular,
-          latestLayoutPosition: updates.latestLayoutPosition,
-          layoutPosition: updates.layoutPosition,
-          logoUrl: updates.logoUrl,
-          maxUses: updates.maxUses,
-          url: updates.url,
-          couponType: updates.couponType,
-          storeName: updates.storeName,
-        };
-
-        const res = await fetch(`/api/coupons/supabase/by-id/${encodeURIComponent(couponId)}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-
-        const data = await res.json();
-        if (res.ok && data.success) {
-          router.push('/admin/coupons');
-        } else {
-          alert(`Failed to update coupon in Supabase: ${data.error || 'Unknown error'}`);
-        }
-      } catch (err) {
-        console.error('Error updating Supabase coupon:', err);
-        alert('Failed to update coupon. Check console for details.');
-      } finally {
-        setSaving(false);
-      }
+    if (!formData.description || formData.description.trim() === '') {
+      alert('Please enter the coupon title / offer text');
       return;
     }
 
-    const result = await updateCoupon(couponId, updates);
-    if (result.success) {
-      router.push('/admin/coupons');
+    setSaving(true);
+
+    const logoUrlToSave = logoUrl ? extractOriginalCloudinaryUrl(logoUrl) : undefined;
+
+    const normalizedUrl = normalizeRedirectUrl(redirectUrl);
+
+    let resolvedStoreName = formData.storeName?.trim() || '';
+    if (selectedStoreIds.length > 0) {
+      const firstStore = stores.find((s) => s.id === selectedStoreIds[0]);
+      if (firstStore?.name) resolvedStoreName = firstStore.name;
     }
-    setSaving(false);
+
+    const payload: Record<string, unknown> = {
+      code: formData.couponType === 'deal' ? '' : formData.code,
+      storeName: resolvedStoreName,
+      description: formData.description,
+      discountType: formData.discountType || 'percentage',
+      couponType: formData.couponType || 'code',
+      maxUses: formData.maxUses ?? 0,
+      currentUses: formData.currentUses ?? 0,
+      expiryDate: resolveCouponExpiryDate(formData.expiryDate),
+      url: normalizedUrl,
+      categoryId: formData.categoryId ?? null,
+      isActive: formData.isActive ?? true,
+      isLatest: formData.isLatest ?? false,
+      isPopular: formData.isPopular ?? false,
+      latestLayoutPosition: formData.isLatest ? formData.latestLayoutPosition ?? null : null,
+      layoutPosition: formData.isPopular ? formData.layoutPosition ?? null : null,
+      getCodeText: null,
+      getDealText: null,
+      logoUrl: logoUrlToSave ?? null,
+    };
+
+    if (formData.discount !== undefined) payload.discount = formData.discount;
+
+    if (selectedStoreIds.length > 0) {
+      payload.storeIds = selectedStoreIds;
+      payload.store_id = selectedStoreIds[0];
+    }
+
+    try {
+      const res = await fetch(
+        `/api/coupons/supabase/by-id/${encodeURIComponent(couponId)}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+          cache: 'no-store',
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        const savedUrl = data.coupon?.url || normalizedUrl || '';
+        setCoupon(data.coupon);
+        setRedirectUrl(savedUrl);
+        setFormData((prev) => ({
+          ...data.coupon,
+          couponType: data.coupon.couponType || prev.couponType || 'code',
+          url: savedUrl,
+        }));
+        alert(`Coupon saved! Redirect URL: ${savedUrl || '(none)'}`);
+      } else {
+        alert(`Failed to update coupon: ${data.error || 'Unknown error'}`);
+      }
+    } catch (err) {
+      console.error('Error updating coupon:', err);
+      alert('Failed to update coupon. Check console for details.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleLogoUrlChange = (url: string) => {
@@ -201,7 +236,7 @@ export default function EditCouponPage() {
     <div>
       <div className="mb-6">
         <button
-          onClick={() => router.back()}
+          onClick={navigateBack}
           className="text-blue-600 hover:text-blue-800 font-semibold"
         >
           ← Back
@@ -211,7 +246,7 @@ export default function EditCouponPage() {
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">Edit Coupon</h1>
 
-        <form onSubmit={handleSave} className="space-y-4">
+        <form onSubmit={handleSave} noValidate className="space-y-4">
           {/* Add the same store selection section as in create form */}
           <div>
             <label className="block text-gray-900 text-sm font-bold mb-2">
@@ -263,11 +298,10 @@ export default function EditCouponPage() {
                                 }
                                 setSelectedStoreIds(newSelected);
 
-                                // Auto-populate storeName from first selected store
                                 if (newSelected.length > 0) {
                                   const firstStore = stores.find(s => s.id === newSelected[0]);
                                   if (firstStore) {
-                                    setFormData({ ...formData, storeName: firstStore.name });
+                                    setFormData((prev) => ({ ...prev, storeName: firstStore.name }));
 
                                     // Auto-fetch logo from first selected store
                                     if (newSelected.length === 1 && firstStore.logoUrl) {
@@ -277,7 +311,7 @@ export default function EditCouponPage() {
                                     }
                                   }
                                 } else {
-                                  setFormData({ ...formData, storeName: '' });
+                                  setFormData((prev) => ({ ...prev, storeName: '' }));
                                 }
                               }}
                               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
@@ -314,14 +348,14 @@ export default function EditCouponPage() {
                         onClick={() => {
                           const newSelected = selectedStoreIds.filter(id => id !== storeId);
                           setSelectedStoreIds(newSelected);
-                          if (newSelected.length > 0) {
-                            const firstStore = stores.find(s => s.id === newSelected[0]);
-                            if (firstStore) {
-                              setFormData({ ...formData, storeName: firstStore.name });
-                            }
-                          } else {
-                            setFormData({ ...formData, storeName: '' });
-                          }
+                          const firstStore =
+                            newSelected.length > 0
+                              ? stores.find((s) => s.id === newSelected[0])
+                              : undefined;
+                          setFormData((prev) => ({
+                            ...prev,
+                            storeName: firstStore?.name || '',
+                          }));
                         }}
                         className="text-blue-700 hover:text-blue-900 font-bold"
                       >
@@ -371,54 +405,16 @@ export default function EditCouponPage() {
               </label>
             </div>
             <p className="mt-1 text-xs text-gray-500">
-              Select whether this is a coupon code or a deal. Frontend will show "Get Code" for codes and "Get Deal" for deals.
+              Select whether this is a coupon code or a deal. The site button is set automatically.
             </p>
-          </div>
-
-          {/* Custom Button Text Fields */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {formData.couponType === 'code' && (
-              <div>
-                <label htmlFor="getCodeText" className="block text-gray-700 text-sm font-semibold mb-2">
-                  Custom "Get Code" Button Text (Optional)
-                </label>
-                <input
-                  id="getCodeText"
-                  name="getCodeText"
-                  type="text"
-                  placeholder='e.g., "Obtenir le code", "Obtener código", "कोड प्राप्त करें"'
-                  value={formData.getCodeText || ''}
-                  onChange={(e) =>
-                    setFormData({ ...formData, getCodeText: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Leave empty to use default "Get Code". Set custom text for any language.
-                </p>
-              </div>
-            )}
-            {formData.couponType === 'deal' && (
-              <div>
-                <label htmlFor="getDealText" className="block text-gray-700 text-sm font-semibold mb-2">
-                  Custom "Get Deal" Button Text (Optional)
-                </label>
-                <input
-                  id="getDealText"
-                  name="getDealText"
-                  type="text"
-                  placeholder="e.g., Obtenir l'offre, Obtener oferta, ऑफर प्राप्त करें"
-                  value={formData.getDealText || ''}
-                  onChange={(e) =>
-                    setFormData({ ...formData, getDealText: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Leave empty to use default "Get Deal". Set custom text for any language.
-                </p>
-              </div>
-            )}
+            <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+              <p className="text-sm text-gray-700">
+                Site button:{' '}
+                <span className="font-semibold">
+                  {formData.couponType === 'code' ? 'Get Code' : 'Get Deal'}
+                </span>
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -444,25 +440,27 @@ export default function EditCouponPage() {
               </div>
             )}
 
-            <div>
-              <label htmlFor="storeName" className="block text-sm font-semibold text-gray-700 mb-1">
-                Coupon Title
-              </label>
-              <input
-                id="storeName"
-                name="storeName"
-                type="text"
-                placeholder="Store/Brand Name (e.g., Nike)"
-                value={formData.storeName || ''}
-                onChange={(e) =>
-                  setFormData({ ...formData, storeName: e.target.value })
-                }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                This name will be displayed on the coupon card instead of the coupon code
-              </p>
-            </div>
+          </div>
+
+          <div>
+            <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-1">
+              Coupon Title <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              placeholder="e.g. Use this code for 10% off first purchase"
+              value={formData.description || ''}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows={4}
+              required
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Shown on the coupon card. Store is selected above — do not repeat the store name here.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -483,6 +481,27 @@ export default function EditCouponPage() {
                 }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+            </div>
+            <div>
+              <label htmlFor="expiryDate" className="block text-sm font-semibold text-gray-700 mb-1">
+                Expiry Date
+              </label>
+              <input
+                id="expiryDate"
+                name="expiryDate"
+                type="date"
+                value={resolveCouponExpiryDate(formData.expiryDate)}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    expiryDate: e.target.value || null,
+                  })
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Defaults to 31 December {new Date().getFullYear()} if left unchanged.
+              </p>
             </div>
           </div>
 
@@ -506,38 +525,20 @@ export default function EditCouponPage() {
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-1">
-              Description
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description || ''}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows={4}
-            />
-          </div>
-
-          <div>
             <label htmlFor="url" className="block text-sm font-semibold text-gray-700 mb-1">
               Coupon URL (Where user should be redirected when clicking "Get Deal")
             </label>
             <input
               id="url"
               name="url"
-              type="url"
+              type="text"
               placeholder="https://example.com/coupon-page"
-              value={formData.url || ''}
-              onChange={(e) =>
-                setFormData({ ...formData, url: e.target.value })
-              }
+              value={redirectUrl}
+              onChange={(e) => setRedirectUrl(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <p className="mt-1 text-xs text-gray-500">
-              When user clicks "Get Deal", they will be redirected to this URL and the coupon code will be revealed.
+              Enter full URL (https://...) or domain only (example.com). Saved URL opens when user clicks Get Deal.
             </p>
           </div>
 
@@ -731,7 +732,7 @@ export default function EditCouponPage() {
             </button>
             <button
               type="button"
-              onClick={() => router.back()}
+              onClick={navigateBack}
               className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition font-semibold"
             >
               Cancel

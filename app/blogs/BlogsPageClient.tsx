@@ -1,14 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { getNews, NewsArticle } from '@/lib/services/newsService';
 import Navbar from '@/app/components/Navbar';
 import Breadcrumbs from '@/app/components/Breadcrumbs';
-import Footer from '@/app/components/Footer';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function BlogsPage() {
+  const searchParams = useSearchParams();
+  const categoryFilter = searchParams.get('category')?.toUpperCase() || '';
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -47,16 +49,23 @@ export default function BlogsPage() {
 
   useEffect(() => {
     if (searchQuery.trim() === '') {
-      setFilteredArticles(articles);
+      const base = categoryFilter
+        ? articles.filter((a) => a.category?.toUpperCase() === categoryFilter)
+        : articles;
+      setFilteredArticles(base);
     } else {
       const query = searchQuery.toLowerCase();
-      const filtered = articles.filter(article =>
+      const pool = categoryFilter
+        ? articles.filter((a) => a.category?.toUpperCase() === categoryFilter)
+        : articles;
+      const filtered = pool.filter(article =>
         article.title.toLowerCase().includes(query) ||
-        article.description.toLowerCase().includes(query)
+        article.description.toLowerCase().includes(query) ||
+        (article.category || '').toLowerCase().includes(query)
       );
       setFilteredArticles(filtered);
     }
-  }, [searchQuery, articles]);
+  }, [searchQuery, articles, categoryFilter]);
 
   const formatDate = (dateString?: string, timestamp?: any) => {
     if (dateString) return dateString;
@@ -97,8 +106,17 @@ export default function BlogsPage() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4"
             >
-              <span className="text-gray-900">Recent</span>{' '}
-              <span className="text-[#221E1D]">News & Articles</span>
+              {categoryFilter ? (
+                <>
+                  <span className="text-gray-900">{categoryFilter}</span>{' '}
+                  <span className="text-[#C7395F]">Articles</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-gray-900">Success Blogs,</span>{' '}
+                  <span className="text-[#C7395F]">Coupons & Deals</span>
+                </>
+              )}
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -130,7 +148,7 @@ export default function BlogsPage() {
                 placeholder="Search articles..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-3 pl-12 border-2 border-brand-cyan/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#221E1D] focus:border-[#221E1D] transition-all text-gray-900"
+                className="w-full px-4 py-3 pl-12 border-2 border-brand-cyan/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C7395F] focus:border-[#C7395F] transition-all text-gray-900"
               />
               <svg
                 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -172,7 +190,7 @@ export default function BlogsPage() {
               <motion.svg
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
-                className="w-24 h-24 mx-auto text-brand-cyan/30 mb-4"
+                className="w-24 h-24 mx-auto text-brand-accent/30 mb-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -192,7 +210,7 @@ export default function BlogsPage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setSearchQuery('')}
-                  className="bg-[#221E1D] hover:bg-brand-navy-dark text-white font-semibold px-6 py-3 rounded-lg transition-colors"
+                  className="bg-[#C7395F] hover:bg-brand-navy-dark text-white font-semibold px-6 py-3 rounded-lg transition-colors"
                 >
                   Clear Search
                 </motion.button>
@@ -255,7 +273,7 @@ export default function BlogsPage() {
                               if (parent) {
                                 parent.innerHTML = `
                                   <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand-cyan/10 to-brand-cyan/15">
-                                    <svg class="w-16 h-16 text-brand-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-16 h-16 text-brand-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
                                   </div>
@@ -265,7 +283,7 @@ export default function BlogsPage() {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand-cyan/10 to-brand-cyan/15">
-                            <svg className="w-16 h-16 text-brand-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-16 h-16 text-brand-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                           </div>
@@ -277,7 +295,7 @@ export default function BlogsPage() {
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.2 }}
-                            className="absolute top-4 right-4 bg-gradient-to-r from-[#221E1D] to-brand-navy-light text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg"
+                            className="absolute top-4 right-4 bg-gradient-to-r from-[#C7395F] to-brand-navy-light text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg"
                           >
                             {formatDate(article.date, article.createdAt)}
                           </motion.div>
@@ -293,9 +311,14 @@ export default function BlogsPage() {
 
                       {/* Content - Flex column with flex-grow for spacing */}
                       <div className="p-6 flex flex-col flex-grow">
+                        {article.category && (
+                          <span className="text-[10px] font-bold tracking-widest text-brand-red uppercase mb-2">
+                            {article.category}
+                          </span>
+                        )}
                         {/* Title */}
                         <motion.h3
-                          whileHover={{ color: '#221E1D' }}
+                          whileHover={{ color: '#C7395F' }}
                           className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 transition-colors"
                         >
                           {article.title || 'Untitled Article'}
@@ -315,7 +338,7 @@ export default function BlogsPage() {
                             >
                               <Link
                                 href={`/blogs/${article.id}`}
-                                className="inline-flex items-center gap-2 bg-gradient-to-r from-[#221E1D] to-brand-navy-light hover:from-brand-navy-dark hover:to-[#221E1D] text-white font-semibold px-5 py-2.5 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg w-full justify-center"
+                                className="inline-flex items-center gap-2 bg-gradient-to-r from-[#C7395F] to-brand-navy-light hover:from-brand-navy-dark hover:to-[#C7395F] text-white font-semibold px-5 py-2.5 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg w-full justify-center"
                               >
                                 Read More
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -344,7 +367,6 @@ export default function BlogsPage() {
 
 
       {/* Footer */}
-      <Footer />
     </div>
   );
 }

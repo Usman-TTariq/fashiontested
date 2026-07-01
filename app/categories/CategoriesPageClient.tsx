@@ -5,7 +5,6 @@ import { getBannerByLayoutPosition, Banner } from '@/lib/services/bannerService'
 import Navbar from '@/app/components/Navbar';
 import Breadcrumbs from '@/app/components/Breadcrumbs';
 import CategoriesGrid from '@/app/components/CategoriesGrid';
-import Footer from '@/app/components/Footer';
 
 export default function CategoriesPage() {
   const [banner, setBanner] = useState<Banner | null>(null);
@@ -66,7 +65,6 @@ export default function CategoriesPage() {
 
 
       {/* Footer */}
-      <Footer />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { addToFavorites, removeFromFavorites, isFavorite } from '@/lib/services/
 import { addNotification } from '@/lib/services/notificationsService';
 import Link from 'next/link';
 import CouponPopup from './CouponPopup';
+import { getCouponDisplayTitle } from '@/lib/utils/couponDisplay';
 
 export default function PopularCoupons() {
   const [coupons, setCoupons] = useState<(Coupon | null)[]>(Array(8).fill(null));
@@ -320,7 +321,7 @@ export default function PopularCoupons() {
                           </div>
                         )}
                         <h3 className="text-sm font-bold text-gray-900 flex-1 line-clamp-2">
-                          {coupon.storeName || coupon.code}
+                          {getCouponDisplayTitle(coupon)}
                         </h3>
                       </div>
 
@@ -349,8 +350,8 @@ export default function PopularCoupons() {
                         <button
                           onClick={(e) => handleToggleFavorite(e, coupon)}
                           className={`p-2 rounded-lg transition-colors ${coupon.id && isFavorite(coupon.id)
-                            ? 'bg-brand-cyan/15 text-[#221E1D]'
-                            : 'bg-gray-100 text-gray-600 hover:bg-brand-red/15 hover:text-[#221E1D]'
+                            ? 'bg-brand-cyan/15 text-[#C7395F]'
+                            : 'bg-gray-100 text-gray-600 hover:bg-brand-red/15 hover:text-[#C7395F]'
                             }`}
                           title={coupon.id && isFavorite(coupon.id) ? 'Remove from favorites' : 'Add to favorites'}
                         >
@@ -441,12 +442,12 @@ export default function PopularCoupons() {
                             const parent = target.parentElement;
                             if (parent) {
                               const initial = (coupon.storeName || coupon.code)?.charAt(0)?.toUpperCase() || '?';
-                              parent.innerHTML = `<div class="w-16 h-16 rounded-full bg-gradient-to-br from-[#221E1D] to-[#523120] flex items-center justify-center"><span class="text-2xl font-bold text-white">${initial}</span></div>`;
+                              parent.innerHTML = `<div class="w-16 h-16 rounded-full bg-gradient-to-br from-[#C7395F] to-[#d45678] flex items-center justify-center"><span class="text-2xl font-bold text-white">${initial}</span></div>`;
                             }
                           }}
                         />
                       ) : (
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#221E1D] to-[#523120] flex items-center justify-center">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#C7395F] to-[#d45678] flex items-center justify-center">
                           <span className="text-2xl font-bold text-white">
                             {(coupon.storeName || coupon.code)?.charAt(0)?.toUpperCase() || '?'}
                           </span>
@@ -460,8 +461,8 @@ export default function PopularCoupons() {
                       </div>
                     )}
 
-                    <h3 className="font-bold text-brand-navy text-base mb-2 group-hover:text-brand-navy-dark transition-colors line-clamp-1 text-center relative z-10">
-                      {coupon.storeName || coupon.code}
+                    <h3 className="font-bold text-brand-navy text-base mb-2 group-hover:text-brand-navy-dark transition-colors line-clamp-2 text-center relative z-10">
+                      {getCouponDisplayTitle(coupon)}
                     </h3>
 
                     <div className="flex items-center justify-center gap-1 mb-3 relative z-10">
@@ -472,10 +473,11 @@ export default function PopularCoupons() {
                       <span className="text-xs text-gray-500">(120+ Reviews)</span>
                     </div>
 
-                    {/* Description */}
-                    <p className="text-xs text-gray-500 text-center mb-4 line-clamp-2 flex-grow relative z-10">
-                      {coupon.description || `Get the best deals and coupons for ${coupon.storeName || 'this store'}. Save big today!`}
-                    </p>
+                    {coupon.storeName && (
+                      <p className="text-xs text-gray-500 text-center mb-4 line-clamp-1 relative z-10">
+                        {coupon.storeName}
+                      </p>
+                    )}
 
                     <button
                       onClick={(e) => handleGetDeal(coupon, e)}

@@ -16,22 +16,22 @@ export interface HeroSlide {
 
 export const ACCENT_STYLES = {
   red: {
-    ring: 'border-[#DB1F15]/30',
-    glow: 'from-[#DB1F15]/20 to-transparent',
-    pill: 'bg-[#DB1F15]/10 text-[#DB1F15] border-[#DB1F15]/25',
-    blob: 'bg-[#DB1F15]/[0.08]',
+    ring: 'border-[#C7395F]/30',
+    glow: 'from-[#C7395F]/20 to-transparent',
+    pill: 'bg-[#C7395F]/10 text-[#C7395F] border-[#C7395F]/25',
+    blob: 'bg-[#C7395F]/[0.08]',
   },
   orange: {
-    ring: 'border-[#DE6113]/35',
-    glow: 'from-[#DE6113]/25 to-transparent',
-    pill: 'bg-[#DE6113]/12 text-[#956025] border-[#DE6113]/30',
-    blob: 'bg-[#DE6113]/[0.1]',
+    ring: 'border-[#C7395F]/35',
+    glow: 'from-[#C7395F]/25 to-transparent',
+    pill: 'bg-[#C7395F]/12 text-[#d45678] border-[#C7395F]/30',
+    blob: 'bg-[#C7395F]/[0.1]',
   },
   brown: {
-    ring: 'border-[#956025]/35',
-    glow: 'from-[#956025]/20 to-transparent',
-    pill: 'bg-[#956025]/12 text-[#523120] border-[#956025]/30',
-    blob: 'bg-[#956025]/[0.08]',
+    ring: 'border-[#d45678]/35',
+    glow: 'from-[#d45678]/20 to-transparent',
+    pill: 'bg-[#d45678]/12 text-[#d45678] border-[#d45678]/30',
+    blob: 'bg-[#d45678]/[0.08]',
   },
 } as const;
 
@@ -57,7 +57,7 @@ export const defaultHeroSlides: HeroSlide[] = [
     description: 'Laptops, phones & smart home — exclusive promo codes, zero guesswork.',
     ctaText: 'Browse Tech Deals',
     ctaHref: '/coupons',
-    imageUrl: '/sample-store-2-icon.svg',
+    imageUrl: '/favicon.svg',
     imageAlt: 'Tech deals',
     badge: 'HOT',
     accent: 'orange',
@@ -83,7 +83,7 @@ export const defaultHeroSlides: HeroSlide[] = [
     description: 'Stack delivery offers with sitewide codes for maximum checkout savings.',
     ctaText: 'Claim Free Shipping',
     ctaHref: '/coupons',
-    imageUrl: '/sample-store-2-icon.svg',
+    imageUrl: '/favicon.svg',
     imageAlt: 'Free shipping',
     badge: 'FREE',
     accent: 'orange',

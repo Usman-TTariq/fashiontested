@@ -1,16 +1,25 @@
 import BlogsPageClient from './BlogsPageClient';
+import SiteFooter from '@/app/components/SiteFooter'
+import { Suspense } from 'react';
 
 export const metadata = {
-  title: 'Blog – Savings Tips & Deal News',
-  description: 'Read the Sample Store 2 blog for money-saving tips, coupon guides, and the latest cashback news.',
-  alternates: { canonical: 'https://samplestore2.com/blogs' },
+  title: 'Blog – Savings Tips, Deals & Lifestyle Articles',
+  description: 'Read inspiring blogs, money-saving tips, coupon guides, and the latest deal news on Favento.',
+  alternates: { canonical: 'https://favento.com/blogs' },
   openGraph: {
-    title: 'Blog – Savings Tips & Deal News',
-    description: 'Read the Sample Store 2 blog for money-saving tips, coupon guides, and the latest cashback news.',
-    url: 'https://samplestore2.com/blogs',
+    title: 'Blog – Savings Tips, Deals & Lifestyle Articles',
+    description: 'Read inspiring blogs, money-saving tips, coupon guides, and the latest deal news.',
+    url: 'https://favento.com/blogs',
   },
 };
 
 export default function BlogsPage() {
-  return <BlogsPageClient />;
+  return (
+    <>
+      <Suspense fallback={<div className="min-h-screen bg-white flex items-center justify-center">Loading...</div>}>
+        <BlogsPageClient />
+      </Suspense>
+      <SiteFooter />
+    </>
+  );
 }

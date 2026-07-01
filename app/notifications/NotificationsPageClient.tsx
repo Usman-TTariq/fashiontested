@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getNotifications, markAsRead, markAllAsRead, deleteNotification, Notification } from '@/lib/services/notificationsService';
 import Navbar from '@/app/components/Navbar';
-import Footer from '@/app/components/Footer';
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -71,7 +70,7 @@ export default function NotificationsPage() {
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
-                className="px-4 py-2 bg-[#221E1D] text-white text-sm font-semibold rounded-lg hover:bg-brand-navy-dark transition-colors"
+                className="px-4 py-2 bg-[#C7395F] text-white text-sm font-semibold rounded-lg hover:bg-brand-navy-dark transition-colors"
               >
                 Mark All Read
               </button>
@@ -104,7 +103,7 @@ export default function NotificationsPage() {
                       <div className="flex items-center gap-2 mb-2">
                         <h3 className="font-semibold text-gray-900">{notification.title}</h3>
                         {!notification.read && (
-                          <span className="w-2 h-2 bg-[#221E1D] rounded-full"></span>
+                          <span className="w-2 h-2 bg-[#C7395F] rounded-full"></span>
                         )}
                       </div>
                       <p className="text-sm text-gray-600 mb-2">{notification.message}</p>
@@ -114,7 +113,7 @@ export default function NotificationsPage() {
                       {notification.link && (
                         <Link
                           href={notification.link}
-                          className="inline-block mt-2 text-sm text-brand-navy-dark hover:text-[#221E1D] font-semibold"
+                          className="inline-block mt-2 text-sm text-brand-navy-dark hover:text-[#C7395F] font-semibold"
                         >
                           View →
                         </Link>
@@ -149,8 +148,6 @@ export default function NotificationsPage() {
           )}
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }

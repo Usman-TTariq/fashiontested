@@ -8,7 +8,7 @@ import { getStores, Store } from '@/lib/services/storeService';
 import { getCategories, Category } from '@/lib/services/categoryService';
 import Navbar from '@/app/components/Navbar';
 import Breadcrumbs from '@/app/components/Breadcrumbs';
-import Footer from '@/app/components/Footer';
+import { getCouponDisplayTitle } from '@/lib/utils/couponDisplay';
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -114,7 +114,7 @@ function SearchContent() {
             {(query || categoryId) && (
               <div className="flex flex-wrap items-center gap-2 text-sm sm:text-base text-gray-600">
                 {query && (
-                  <span className="px-3 py-1 bg-brand-cyan/15 text-[#221E1D] rounded-full font-semibold">
+                  <span className="px-3 py-1 bg-brand-cyan/15 text-[#C7395F] rounded-full font-semibold">
                     Query: "{query}"
                   </span>
                 )}
@@ -151,7 +151,7 @@ function SearchContent() {
                         href={coupon.url || '#'}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="group bg-white border border-gray-200 rounded-lg p-4 sm:p-6 hover:border-[#221E1D] hover:shadow-lg transition-all duration-300"
+                        className="group bg-white border border-gray-200 rounded-lg p-4 sm:p-6 hover:border-[#C7395F] hover:shadow-lg transition-all duration-300"
                       >
                         {coupon.logoUrl && (
                           <div className="mb-3 flex items-center justify-center h-16">
@@ -167,15 +167,12 @@ function SearchContent() {
                           </div>
                         )}
                         <div className="text-center">
-                          <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-[#221E1D] transition-colors">
-                            {coupon.code}
+                          <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-[#C7395F] transition-colors line-clamp-2">
+                            {getCouponDisplayTitle(coupon)}
                           </h3>
                           {coupon.storeName && (
                             <p className="text-sm text-gray-600 mb-2">{coupon.storeName}</p>
                           )}
-                          <p className="text-xs sm:text-sm text-gray-500 mb-3 line-clamp-2">
-                            {coupon.description}
-                          </p>
                         </div>
                       </Link>
                     ))}
@@ -194,7 +191,7 @@ function SearchContent() {
                       <Link
                         key={store.id}
                         href={`/stores/${store.slug || store.id}`}
-                        className="group bg-white border border-gray-200 rounded-lg p-4 hover:border-[#221E1D] hover:shadow-lg transition-all duration-300 text-center"
+                        className="group bg-white border border-gray-200 rounded-lg p-4 hover:border-[#C7395F] hover:shadow-lg transition-all duration-300 text-center"
                       >
                         {store.logoUrl ? (
                           <div className="mb-3 flex items-center justify-center h-16">
@@ -213,7 +210,7 @@ function SearchContent() {
                             <span className="text-gray-400 text-xs font-bold">{store.name.substring(0, 2)}</span>
                           </div>
                         )}
-                        <h3 className="font-semibold text-sm text-gray-900 group-hover:text-[#221E1D] transition-colors truncate">
+                        <h3 className="font-semibold text-sm text-gray-900 group-hover:text-[#C7395F] transition-colors truncate">
                           {store.name}
                         </h3>
                       </Link>
@@ -260,7 +257,6 @@ export default function SearchPage() {
       }>
         <SearchContent />
       </Suspense>
-      <Footer />
     </div>
   );
 }

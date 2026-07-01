@@ -1,5 +1,20 @@
+import { resolveCouponExpiryDate } from '@/lib/utils/couponExpiry';
+import { getCouponDisplayTitle, mapRowDescription } from '@/lib/utils/couponDisplay';
+
 export interface OrderedCoupon {
   id?: string;
+}
+
+/** Sort coupons with most recently added/edited first. */
+export function sortCouponsByRecentActivity<
+  T extends { updatedAt?: string; createdAt?: string; id?: string }
+>(coupons: T[]): T[] {
+  return [...coupons].sort((a, b) => {
+    const aTime = new Date(a.updatedAt || a.createdAt || 0).getTime();
+    const bTime = new Date(b.updatedAt || b.createdAt || 0).getTime();
+    if (bTime !== aTime) return bTime - aTime;
+    return String(b.id || '').localeCompare(String(b.id || ''));
+  });
 }
 
 /** Sort coupons by store's saved coupon_order; unknown coupons go to the end. */
@@ -23,16 +38,25 @@ export function sortCouponsByOrder<T extends OrderedCoupon>(
 }
 
 export function mapDbCoupon(row: Record<string, unknown>) {
+  const description = mapRowDescription(row);
+  const couponType = ((row.coupon_type as string) || 'deal') as 'code' | 'deal';
+
   return {
     id: String(row.id),
     code: (row.code as string) || '',
-    title: (row.title as string) || (row.store_name as string) || (row.code as string) || '',
+    title: getCouponDisplayTitle({
+      description,
+      title: row.title as string,
+      storeName: row.store_name as string,
+      code: row.code as string,
+      couponType,
+    }),
     storeName: (row.store_name as string) || undefined,
     storeIds: (row.store_ids as string[]) || [],
-    description: (row.description as string) || '',
+    description,
     isActive: row.status === 'active',
-    expiryDate: (row.expiry_date as string) || null,
-    couponType: ((row.coupon_type as string) || 'deal') as 'code' | 'deal',
+    expiryDate: resolveCouponExpiryDate(row.expiry_date as string | null),
+    couponType,
     createdAt: row.created_at as string | undefined,
   };
 }

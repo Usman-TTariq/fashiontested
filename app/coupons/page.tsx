@@ -1,16 +1,22 @@
 import CouponsPageClient from './CouponsPageClient';
+import SiteFooter from '@/app/components/SiteFooter'
 
 export const metadata = {
-  title: 'Latest Coupons & Promo Codes',
-  description: 'Browse the latest verified coupons and promo codes on Sample Store 2. Updated daily with fresh discounts from top brands.',
-  alternates: { canonical: 'https://samplestore2.com/coupons' },
+  title: 'Promotions & Verified Deals',
+  description: 'Browse hand-picked promo codes and exclusive deals from top brands on Favento. Verified daily — save more on every purchase.',
+  alternates: { canonical: 'https://favento.com/coupons' },
   openGraph: {
-    title: 'Latest Coupons & Promo Codes',
-    description: 'Browse the latest verified coupons and promo codes on Sample Store 2. Updated daily with fresh discounts from top brands.',
-    url: 'https://samplestore2.com/coupons',
+    title: 'Promotions & Verified Deals',
+    description: 'Browse hand-picked promo codes and exclusive deals from top brands. Verified daily.',
+    url: 'https://favento.com/coupons',
   },
 };
 
 export default function CouponsPage() {
-  return <CouponsPageClient />;
+  return (
+    <>
+      <CouponsPageClient />
+      <SiteFooter />
+    </>
+  );
 }

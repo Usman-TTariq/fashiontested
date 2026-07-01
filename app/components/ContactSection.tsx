@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { siteConfig } from '@/lib/seo/config';
 import { Mail, Clock, MessageSquare, Send, User, AtSign, Phone, MapPin, CheckCircle, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -80,7 +81,7 @@ export default function ContactSection() {
                             </div>
                             <h2 className="section-title text-4xl md:text-5xl mb-6 leading-tight">
                                 Have Questions? <br />
-                                <span className="text-brand-cyan">Let&apos;s Connect</span>
+                                <span className="text-brand-accent">Let&apos;s Connect</span>
                             </h2>
                             <p className="text-gray-600 text-lg mb-10 max-w-lg mx-auto">
                                 We're here to help you save more. Whether you have a question about a coupon or want to partner with us, our team is ready to assist.
@@ -93,7 +94,7 @@ export default function ContactSection() {
                                     </div>
                                     <div className="text-left">
                                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Email</p>
-                                        <p className="text-sm font-bold text-gray-900">contact@samplestore2.com</p>
+                                        <p className="text-sm font-bold text-gray-900">{siteConfig.email.contact}</p>
                                     </div>
                                 </div>
 
@@ -133,7 +134,7 @@ export default function ContactSection() {
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Full Name</label>
                                     <div className="relative group">
-                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand-cyan transition-colors" />
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand-accent transition-colors" />
                                         <input
                                             type="text"
                                             name="name"
@@ -148,7 +149,7 @@ export default function ContactSection() {
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Email</label>
                                     <div className="relative group">
-                                        <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand-cyan transition-colors" />
+                                        <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand-accent transition-colors" />
                                         <input
                                             type="email"
                                             name="email"
@@ -165,7 +166,7 @@ export default function ContactSection() {
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Message</label>
                                 <div className="relative group">
-                                    <MessageSquare className="absolute left-4 top-5 w-4 h-4 text-gray-400 group-focus-within:text-brand-cyan transition-colors" />
+                                    <MessageSquare className="absolute left-4 top-5 w-4 h-4 text-gray-400 group-focus-within:text-brand-accent transition-colors" />
                                     <textarea
                                         name="message"
                                         value={formData.message}
@@ -182,7 +183,7 @@ export default function ContactSection() {
                                 <motion.div
                                     initial={{ opacity: 0, y: -10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className={`p-4 rounded-2xl border flex items-center gap-3 ${submitStatus.type === 'success' ? 'bg-brand-cyan/10 border-brand-cyan/20 text-[#221E1D]' : 'bg-red-50 border-red-100 text-red-600'
+                                    className={`p-4 rounded-2xl border flex items-center gap-3 ${submitStatus.type === 'success' ? 'bg-brand-cyan/10 border-brand-cyan/20 text-[#C7395F]' : 'bg-red-50 border-red-100 text-red-600'
                                         }`}
                                 >
                                     {submitStatus.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}

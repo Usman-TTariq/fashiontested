@@ -1,5 +1,5 @@
 /**
- * Apply Sample Store 2 brand colors across the codebase.
+ * Apply Favento brand colors across the codebase.
  * Usage: node scripts/apply-theme.mjs
  */
 

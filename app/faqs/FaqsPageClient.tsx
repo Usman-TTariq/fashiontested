@@ -6,7 +6,6 @@ import { getBannerByLayoutPosition, Banner } from '@/lib/services/bannerService'
 import { getActiveFAQs, FAQ } from '@/lib/services/faqService';
 import Navbar from '@/app/components/Navbar';
 import Breadcrumbs from '@/app/components/Breadcrumbs';
-import Footer from '@/app/components/Footer';
 import ContactSupportModal from '@/app/components/ContactSupportModal';
 import { HelpCircle, MessageCircle, ChevronDown, CheckCircle, Search } from 'lucide-react';
 
@@ -115,14 +114,14 @@ export default function FAQsPage() {
                   {/* Question */}
                   <button
                     onClick={() => toggleFAQ(index)}
-                    className="w-full px-4 sm:px-6 py-4 sm:py-5 text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#221E1D] focus:ring-offset-2 rounded-lg group"
+                    className="w-full px-4 sm:px-6 py-4 sm:py-5 text-left flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#C7395F] focus:ring-offset-2 rounded-lg group"
                   >
-                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 pr-4 flex-1 group-hover:text-[#221E1D] transition-colors">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 pr-4 flex-1 group-hover:text-[#C7395F] transition-colors">
                       {faq.question}
                     </h3>
                     <div className="flex-shrink-0">
                       <ChevronDown
-                        className={`w-5 h-5 sm:w-6 sm:h-6 text-[#221E1D] transition-transform duration-300 ${openIndex === index ? 'transform rotate-180' : ''
+                        className={`w-5 h-5 sm:w-6 sm:h-6 text-[#C7395F] transition-transform duration-300 ${openIndex === index ? 'transform rotate-180' : ''
                           }`}
                       />
                     </div>
@@ -150,18 +149,18 @@ export default function FAQsPage() {
           <div className="mt-12 sm:mt-16 bg-gradient-to-br from-brand-cyan/10 to-brand-cyan/15 rounded-2xl p-8 sm:p-12 text-center border border-brand-cyan/20 shadow-sm relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-brand-cyan/20 rounded-full -mr-16 -mt-16 blur-2xl"></div>
             <div className="relative z-10">
-              <div className="w-16 h-16 bg-[#221E1D]/10 rounded-2xl flex items-center justify-center text-[#221E1D] mx-auto mb-6">
+              <div className="w-16 h-16 bg-[#C7395F]/10 rounded-2xl flex items-center justify-center text-[#C7395F] mx-auto mb-6">
                 <HelpCircle className="w-8 h-8" />
               </div>
               <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
                 Still have questions?
               </h3>
               <p className="text-gray-600 text-lg mb-8 max-w-xl mx-auto">
-                Can't find the answer you're looking for? Our friendly support team is here to help you get the most out of Sample Store 2.
+                Can't find the answer you're looking for? Our friendly support team is here to help you get the most out of Favento.
               </p>
               <button
                 onClick={() => setIsContactModalOpen(true)}
-                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#221E1D] to-brand-navy-dark text-white font-bold rounded-xl hover:shadow-xl hover:scale-[1.02] transition-all duration-300"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#C7395F] to-brand-navy-dark text-white font-bold rounded-xl hover:shadow-xl hover:scale-[1.02] transition-all duration-300"
               >
                 <MessageCircle className="w-5 h-5" />
                 Contact Support
@@ -173,7 +172,6 @@ export default function FAQsPage() {
 
 
       {/* Footer */}
-      <Footer />
 
       {/* Contact Support Modal */}
       <ContactSupportModal

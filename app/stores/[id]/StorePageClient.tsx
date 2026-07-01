@@ -6,8 +6,9 @@ import { motion } from 'framer-motion';
 import { getStoreById, getStoreBySlug, Store, getStores } from '@/lib/services/storeService';
 import { getCouponsByStoreId, Coupon } from '@/lib/services/couponService';
 import { sortCouponsByOrder } from '@/lib/utils/couponOrder';
+import { toJsDate } from '@/lib/utils/date';
+import { getCouponDisplayTitle } from '@/lib/utils/couponDisplay';
 import Navbar from '@/app/components/Navbar';
-import Footer from '@/app/components/Footer';
 import CouponPopup from '@/app/components/CouponPopup';
 import Breadcrumbs from '@/app/components/Breadcrumbs';
 import { ExternalLink, Tag, CheckCircle, Calendar, Copy, Star, ArrowRight } from 'lucide-react';
@@ -196,11 +197,10 @@ export default function StorePageClient({
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#221E1D] mb-4"></div>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#C7395F] mb-4"></div>
             <p className="text-gray-600">Loading store...</p>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -213,12 +213,11 @@ export default function StorePageClient({
           <div className="text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">Store Not Found</h1>
             <p className="text-gray-600 mb-6">The store you're looking for doesn't exist.</p>
-            <Link href="/stores" className="inline-block px-6 py-3 bg-gradient-to-r from-[#221E1D] to-[#523120] text-white rounded-lg hover:shadow-lg transition-all">
+            <Link href="/stores" className="inline-block px-6 py-3 bg-gradient-to-r from-[#C7395F] to-[#d45678] text-white rounded-lg hover:shadow-lg transition-all">
               Browse All Stores
             </Link>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -229,7 +228,7 @@ export default function StorePageClient({
 
       {/* Decorative Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-[#221E1D]/10 to-[#523120]/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-[#C7395F]/10 to-[#d45678]/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-br from-brand-cyan/10 to-brand-cyan/5 rounded-full blur-3xl"></div>
       </div>
 
@@ -271,7 +270,7 @@ export default function StorePageClient({
                       if (parent) {
                         target.style.display = 'none';
                         const fallback = document.createElement('div');
-                        fallback.className = 'w-full h-full bg-gradient-to-br from-[#221E1D] to-[#523120] rounded-xl flex items-center justify-center';
+                        fallback.className = 'w-full h-full bg-gradient-to-br from-[#C7395F] to-[#d45678] rounded-xl flex items-center justify-center';
                         fallback.innerHTML = `<span class="text-white font-bold text-4xl">${store.name.charAt(0).toUpperCase()}</span>`;
                         parent.appendChild(fallback);
                       }
@@ -289,7 +288,7 @@ export default function StorePageClient({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
               >
-                <span className="bg-gradient-to-r from-[#221E1D] to-[#523120] bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-[#C7395F] to-[#d45678] bg-clip-text text-transparent">
                   {store.subStoreName || store.name}
                 </span>
               </motion.h1>
@@ -332,7 +331,7 @@ export default function StorePageClient({
                 href={store.trackingLink || store.trackingUrl || store.websiteUrl || '#'}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 mt-4 px-6 py-3 bg-gradient-to-r from-[#221E1D] to-[#523120] text-white rounded-lg hover:shadow-xl transition-all duration-300 hover:scale-105 font-semibold"
+                className="inline-flex items-center gap-2 mt-4 px-6 py-3 bg-gradient-to-r from-[#C7395F] to-[#d45678] text-white rounded-lg hover:shadow-xl transition-all duration-300 hover:scale-105 font-semibold"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
@@ -354,7 +353,7 @@ export default function StorePageClient({
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <h2 className="text-3xl md:text-4xl font-bold mb-2">
-              Available <span className="bg-gradient-to-r from-[#221E1D] to-[#523120] bg-clip-text text-transparent">Coupons</span>
+              Available <span className="bg-gradient-to-r from-[#C7395F] to-[#d45678] bg-clip-text text-transparent">Coupons</span>
             </h2>
             <p className="text-gray-600">
               {coupons.length > 0
@@ -366,60 +365,78 @@ export default function StorePageClient({
           {coupons.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-2xl shadow-md">
               <p className="text-gray-500 text-lg mb-4">No coupons available for this store right now.</p>
-              <Link href="/stores" className="inline-block px-6 py-3 bg-gradient-to-r from-[#221E1D] to-[#523120] text-white rounded-lg hover:shadow-lg transition-all">
+              <Link href="/stores" className="inline-block px-6 py-3 bg-gradient-to-r from-[#C7395F] to-[#d45678] text-white rounded-lg hover:shadow-lg transition-all">
                 Browse Other Stores
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
               {coupons.map((coupon, index) => {
-                const isExpired = coupon.expiryDate && coupon.expiryDate.toDate() < new Date();
+                const expiry = toJsDate(coupon.expiryDate);
+                const isExpired = expiry ? expiry < new Date() : false;
+
+                const logoUrl = coupon.logoUrl || (store ? getStoreFaviconUrl(store) : '');
+                const title = getCouponDisplayTitle(coupon);
 
                 return (
                   <motion.div
                     key={coupon.id}
-                    className="group relative bg-white rounded-2xl p-6 shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-100 hover:border-[#221E1D]/30 cursor-pointer"
+                    className="group bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 hover:border-[#C7395F] flex items-center gap-4 cursor-pointer"
                     onClick={() => !isExpired && handleCouponClick(coupon)}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    whileHover={{ y: -5 }}
+                    transition={{ duration: 0.4, delay: index * 0.05 }}
                   >
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-brand-cyan/10/50 via-transparent to-brand-cyan/15/30 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"></div>
-
-                    <div className="relative z-10">
-                      {/* Header */}
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
-                            {coupon.storeName || coupon.title || 'Special Offer'}
-                          </h3>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <div className="flex items-center gap-1 text-brand-navy text-sm">
-                              <CheckCircle className="w-4 h-4" />
-                              <span className="font-medium">Verified</span>
-                            </div>
-                            {coupon.expiryDate && (
-                              <div className="flex items-center gap-1 text-gray-500 text-sm">
-                                <Calendar className="w-4 h-4" />
-                                <span>{formatDate(coupon.expiryDate) || '31 Dec, 2025'}</span>
-                              </div>
-                            )}
-                          </div>
+                    {/* Logo */}
+                    <div className="flex-shrink-0">
+                      {logoUrl ? (
+                        <div className="w-16 h-16 rounded-lg flex items-center justify-center overflow-hidden bg-gray-50">
+                          <img
+                            src={logoUrl}
+                            alt={title}
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              const parent = target.parentElement;
+                              if (parent) {
+                                const initial = (store?.name || title).charAt(0).toUpperCase() || '?';
+                                parent.innerHTML = `<div class="w-16 h-16 rounded-lg bg-gradient-to-br from-[#C7395F] to-[#d45678] flex items-center justify-center"><span class="text-xl font-bold text-white">${initial}</span></div>`;
+                              }
+                            }}
+                          />
                         </div>
-                      </div>
-
-                      {/* Description */}
-                      {coupon.description && (
-                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                          {coupon.description}
-                        </p>
+                      ) : (
+                        <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-[#C7395F] to-[#d45678] flex items-center justify-center">
+                          <span className="text-xl font-bold text-white">
+                            {(store?.name || title).charAt(0).toUpperCase() || '?'}
+                          </span>
+                        </div>
                       )}
+                    </div>
 
-                      {/* Button */}
+                    {/* Title + subtitle */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-bold text-gray-900 mb-1 line-clamp-1">
+                        {title}
+                      </h3>
+                      <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
+                        <div className="flex items-center gap-1 text-brand-navy">
+                          <CheckCircle className="w-3 h-3" />
+                          <span>Verified</span>
+                        </div>
+                        {coupon.expiryDate && (
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            <span>{formatDate(coupon.expiryDate) || '31 Dec, 2025'}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Get Code / Get Deal */}
+                    <div className="flex-shrink-0">
                       {isExpired ? (
-                        <div className="bg-red-50 text-red-700 text-sm font-semibold px-4 py-2.5 rounded-lg text-center border border-red-200">
+                        <div className="bg-red-100 text-red-700 text-xs font-semibold px-4 py-2 rounded">
                           Expired
                         </div>
                       ) : (
@@ -428,27 +445,24 @@ export default function StorePageClient({
                             e.stopPropagation();
                             handleCouponClick(coupon);
                           }}
-                          className="relative w-full bg-gradient-to-r from-[#221E1D] to-[#523120] text-white font-semibold px-6 py-3 rounded-lg transition-all duration-300 group/btn hover:shadow-lg flex items-center justify-center gap-2 overflow-hidden"
+                          className="group/btn relative bg-gradient-to-r from-[#C7395F] to-[#d45678] border-2 border-dashed border-white/60 rounded-lg px-6 py-3 text-white font-semibold hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-2"
                         >
-                          <span className="flex items-center gap-2">
-                            {coupon.couponType === 'code' ? (
-                              <>
-                                <Copy className="w-4 h-4" />
-                                {copiedCode === coupon.code ? 'Copied!' : (coupon.getCodeText || 'Get Code')}
-                              </>
-                            ) : (
-                              <>
-                                <ExternalLink className="w-4 h-4" />
-                                {coupon.getDealText || 'Get Deal'}
-                              </>
-                            )}
-                          </span>
-                          {getLastTwoDigits(coupon) && (
-                            <div className="hidden sm:flex w-0 opacity-0 group-hover/btn:w-16 group-hover/btn:opacity-100 transition-all duration-300 items-center justify-center border-l-2 border-dashed border-white/70 ml-2 pl-2">
-                              <span className="text-white font-bold text-xs">...{getLastTwoDigits(coupon)}</span>
-                            </div>
+                          {coupon.couponType === 'code' ? (
+                            <>
+                              <Copy className="w-4 h-4" />
+                              {copiedCode === coupon.code ? 'Copied!' : (coupon.getCodeText || 'Get Code')}
+                            </>
+                          ) : (
+                            <>
+                              <ExternalLink className="w-4 h-4" />
+                              {coupon.getDealText || 'Get Deal'}
+                            </>
                           )}
-                          <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                          {getLastTwoDigits(coupon) && (
+                            <span className="hidden sm:inline text-xs opacity-80 border-l border-white/40 pl-2">
+                              ...{getLastTwoDigits(coupon)}
+                            </span>
+                          )}
                         </button>
                       )}
                     </div>
@@ -466,7 +480,7 @@ export default function StorePageClient({
           <div className="max-w-7xl mx-auto">
             <div className="mb-8">
               <h2 className="text-3xl md:text-4xl font-bold mb-2">
-                Related <span className="bg-gradient-to-r from-[#221E1D] to-[#523120] bg-clip-text text-transparent">Stores</span>
+                Related <span className="bg-gradient-to-r from-[#C7395F] to-[#d45678] bg-clip-text text-transparent">Stores</span>
               </h2>
               <p className="text-gray-600">Discover more amazing deals from similar stores</p>
             </div>
@@ -479,7 +493,7 @@ export default function StorePageClient({
                   className="group"
                 >
                   <motion.div
-                    className="bg-white rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#221E1D]/30 text-center"
+                    className="bg-white rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#C7395F]/30 text-center"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: index * 0.05 }}
@@ -502,7 +516,7 @@ export default function StorePageClient({
                             if (parent) {
                               target.style.display = 'none';
                               const fallback = document.createElement('div');
-                              fallback.className = 'w-16 h-16 rounded-lg bg-gradient-to-br from-[#221E1D] to-[#523120] flex items-center justify-center';
+                              fallback.className = 'w-16 h-16 rounded-lg bg-gradient-to-br from-[#C7395F] to-[#d45678] flex items-center justify-center';
                               fallback.innerHTML = `<span class="text-white font-bold text-xl">${relatedStore.name.charAt(0)}</span>`;
                               parent.appendChild(fallback);
                             }
@@ -510,7 +524,7 @@ export default function StorePageClient({
                         }}
                       />
                     </div>
-                    <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-[#221E1D] transition-colors">
+                    <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-[#C7395F] transition-colors">
                       {relatedStore.name}
                     </h3>
                   </motion.div>
@@ -521,7 +535,7 @@ export default function StorePageClient({
             <div className="text-center mt-8">
               <Link
                 href="/stores"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-[#221E1D] text-[#221E1D] rounded-lg hover:bg-[#221E1D] hover:text-white transition-all duration-300 font-semibold"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-[#C7395F] text-[#C7395F] rounded-lg hover:bg-[#C7395F] hover:text-white transition-all duration-300 font-semibold"
               >
                 View All Stores
                 <ArrowRight className="w-5 h-5" />
@@ -535,7 +549,7 @@ export default function StorePageClient({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <Link
           href="/stores"
-          className="inline-flex items-center gap-2 text-[#221E1D] hover:text-[#523120] font-semibold transition-colors"
+          className="inline-flex items-center gap-2 text-[#C7395F] hover:text-[#d45678] font-semibold transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -543,9 +557,6 @@ export default function StorePageClient({
           <span>Back to All Stores</span>
         </Link>
       </div>
-
-      {/* Footer */}
-      <Footer />
 
       {/* Coupon Popup */}
       <CouponPopup

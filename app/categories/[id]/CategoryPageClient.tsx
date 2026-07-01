@@ -6,11 +6,10 @@ import { getStoresByCategoryId, Store } from '@/lib/services/storeService';
 import { getCouponsByCategoryId, Coupon } from '@/lib/services/couponService';
 import { addNotification } from '@/lib/services/notificationsService';
 import Navbar from '@/app/components/Navbar';
-import Footer from '@/app/components/Footer';
 import CouponPopup from '@/app/components/CouponPopup';
 import Breadcrumbs from '@/app/components/Breadcrumbs';
 import { Tag, CheckCircle, Calendar, ExternalLink, ArrowRight, Info } from 'lucide-react';
-import Link from 'next/link';
+import { getCouponDisplayTitle } from '@/lib/utils/couponDisplay';
 
 export default function CategoryPageClient({ params }: { params: { id: string } }) {
   const categoryId = params.id;
@@ -185,7 +184,6 @@ export default function CategoryPageClient({ params }: { params: { id: string } 
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-xl font-semibold text-gray-600">Loading...</div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -197,12 +195,11 @@ export default function CategoryPageClient({ params }: { params: { id: string } 
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-800 mb-2">Category Not Found</h1>
-            <Link href="/categories" className="text-[#221E1D] hover:underline">
+            <Link href="/categories" className="text-[#C7395F] hover:underline">
               Back to Categories
             </Link>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -289,7 +286,7 @@ export default function CategoryPageClient({ params }: { params: { id: string } 
                         </span>
                       </div>
                     )}
-                    <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-gray-800 mb-1 sm:mb-2 group-hover:text-[#221E1D] transition-colors line-clamp-2">
+                    <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-gray-800 mb-1 sm:mb-2 group-hover:text-[#C7395F] transition-colors line-clamp-2">
                       {store.name}
                     </h3>
                     {store.voucherText && (
@@ -333,11 +330,11 @@ export default function CategoryPageClient({ params }: { params: { id: string } 
                         />
                       )}
                       <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-800 mb-1 sm:mb-2 text-center line-clamp-2">
-                        {coupon.storeName || coupon.code}
+                        {getCouponDisplayTitle(coupon)}
                       </h3>
-                      {coupon.description && (
-                        <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 md:mb-4 text-center line-clamp-2 hidden sm:block">
-                          {coupon.description}
+                      {coupon.storeName && (
+                        <p className="text-xs sm:text-sm text-gray-500 mb-2 sm:mb-3 text-center line-clamp-1">
+                          {coupon.storeName}
                         </p>
                       )}
                       {isExpired && (
@@ -348,7 +345,7 @@ export default function CategoryPageClient({ params }: { params: { id: string } 
                       {!isExpired && (
                         <button
                           onClick={(e) => handleGetDeal(coupon, e)}
-                          className="w-full bg-gradient-to-r from-[#221E1D] to-brand-navy-light border-2 border-dashed border-white/60 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 flex items-center justify-between text-white font-semibold hover:from-brand-navy-dark hover:to-[#221E1D] hover:border-white/80 transition-all duration-300 group relative overflow-hidden shadow-md hover:shadow-lg text-xs sm:text-sm md:text-base"
+                          className="w-full bg-gradient-to-r from-[#C7395F] to-brand-navy-light border-2 border-dashed border-white/60 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 flex items-center justify-between text-white font-semibold hover:from-brand-navy-dark hover:to-[#C7395F] hover:border-white/80 transition-all duration-300 group relative overflow-hidden shadow-md hover:shadow-lg text-xs sm:text-sm md:text-base"
                           style={{ borderStyle: 'dashed', borderWidth: '2px' }}
                         >
                           <span className="flex-1 flex items-center justify-center">
@@ -390,7 +387,7 @@ export default function CategoryPageClient({ params }: { params: { id: string } 
         {stores.length === 0 && coupons.length === 0 && (
           <div className="text-center py-6 sm:py-8 md:py-12">
             <p className="text-gray-600 text-sm sm:text-base md:text-lg">No stores or coupons found for this category.</p>
-            <Link href="/categories" className="text-[#221E1D] hover:underline mt-2 sm:mt-4 inline-block text-sm sm:text-base">
+            <Link href="/categories" className="text-[#C7395F] hover:underline mt-2 sm:mt-4 inline-block text-sm sm:text-base">
               Browse All Categories
             </Link>
           </div>
@@ -398,7 +395,6 @@ export default function CategoryPageClient({ params }: { params: { id: string } 
       </div>
 
       {/* Footer */}
-      <Footer />
 
       {/* Coupon Popup */}
       <CouponPopup

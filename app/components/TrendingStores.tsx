@@ -96,7 +96,7 @@ export default function TrendingStores() {
         >
           <div>
             <span className="section-eyebrow mb-4">
-              <Sparkles className="w-4 h-4 text-brand-cyan" />
+              <Sparkles className="w-4 h-4 text-brand-accent" />
               Top Picks
             </span>
             <h2 className="section-title text-3xl md:text-4xl mt-4">
@@ -104,7 +104,7 @@ export default function TrendingStores() {
               <motion.span
                 animate={{ opacity: [1, 0, 1] }}
                 transition={{ duration: 0.8, repeat: Infinity }}
-                className="text-brand-cyan"
+                className="text-brand-accent"
               >
                 |
               </motion.span>

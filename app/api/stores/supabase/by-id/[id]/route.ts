@@ -1,4 +1,6 @@
 import { supabaseServer } from '@/lib/supabase/server';
+import { syncStoreCouponUrls } from '@/lib/server/syncStoreCouponUrls';
+import { findStoreRowByParam, mapStoreRowToResponse } from '@/lib/server/findStoreByParam';
 
 interface SupabaseStoreRow {
   store_id?: string | number;
@@ -10,9 +12,9 @@ interface SupabaseStoreRow {
   seoDescription?: string | null;
   slug?: string | null;
   subStoreName?: string | null;
-  merchant_id?: string | null;
-  network_id?: string | null;
   tracking_link?: string | null;
+  country?: string | null;
+  category_id?: string | null;
 }
 
 export async function GET(
@@ -20,49 +22,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = supabaseServer();
-    const { id: slug } = await params;
-    const safeSlug = slug ?? '';
-
-    // 1) Try exact match on slug
-    let { data, error } = await supabase
-      .from('stores')
-      .select('*')
-      .eq('slug', safeSlug)
-      .limit(1)
-      .maybeSingle();
-
-    // 2) If not found, try case-insensitive slug match 
-    if (!data) {
-      const { data: ciData } = await supabase
-        .from('stores')
-        .select('*')
-        .ilike('slug', safeSlug)
-        .limit(1)
-        .maybeSingle();
-      data = ciData || null;
-    }
-
-    // 3) If still not found and slug is non-empty, try matching store_name
-    //    (e.g., "MLK Store US" vs "MLK-Store-US")
-    if (!data && safeSlug) {
-      const nameGuess = safeSlug.replace(/-/g, ' ');
-      const { data: nameData } = await supabase
-        .from('stores')
-        .select('*')
-        .ilike('store_name', nameGuess)
-        .limit(1)
-        .maybeSingle();
-      data = nameData || null;
-    }
-
-    if (error) {
-      console.error('Supabase get store by slug error:', error);
-      return new Response(
-        JSON.stringify({ success: false, error: error.message, store: null }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
+    const { id } = await params;
+    const data = await findStoreRowByParam(id ?? '');
 
     if (!data) {
       return new Response(
@@ -71,28 +32,8 @@ export async function GET(
       );
     }
 
-    const row = data as any;
-
-    const store = {
-      id: row.id?.toString(),
-      storeId: row.store_id ? (typeof row.store_id === 'number' ? row.store_id : parseInt(row.store_id, 10)) : undefined,
-      name: row.store_name || row.name || '',
-      subStoreName: row.subStoreName || row.sub_store_name || undefined,
-      slug: row.slug || undefined,
-      description: row.description || '',
-      logoUrl: row.store_logo_url || row.logo_url || undefined,
-      websiteUrl: row.website_url || undefined,
-      trackingLink: row.tracking_link || undefined,
-      seoTitle: row.seoTitle || row.seo_title || undefined,
-      seoDescription: row.seoDescription || row.seo_description || undefined,
-      isTrending: row.isTrending ?? row.featured ?? false,
-      layoutPosition: row.layout_position || null,
-      categoryId: row.category_id || null,
-      createdAt: row.created_at || undefined,
-    };
-
     return new Response(
-      JSON.stringify({ success: true, store }),
+      JSON.stringify({ success: true, store: mapStoreRowToResponse(data) }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
@@ -116,13 +57,12 @@ export async function PATCH(
     const supabase = supabaseServer();
     const { id } = await params;
     const idParam = id ?? '';
-    // console.log("params awaited idParam: ", idParam);
 
     const body = await req.json();
-    // console.log("body: ", body);
 
-    // Allowed fields to update
-    const updates: Partial<SupabaseStoreRow> = {};
+    const updates: Partial<SupabaseStoreRow> & { updated_at?: string } = {
+      updated_at: new Date().toISOString(),
+    };
     if (body.store_id !== undefined) updates.store_id = body.store_id;
     if (body.store_name !== undefined) updates.store_name = body.store_name;
     if (body.description !== undefined) updates.description = body.description;
@@ -132,81 +72,34 @@ export async function PATCH(
     if (body.seoTitle !== undefined) updates.seoTitle = body.seoTitle;
     if (body.seoDescription !== undefined) updates.seoDescription = body.seoDescription;
     if (body.isTrending !== undefined) updates.isTrending = body.isTrending;
-    if (body.merchant_id !== undefined) updates.merchant_id = body.merchant_id;
-    if (body.network_id !== undefined) updates.network_id = body.network_id;
     if (body.tracking_link !== undefined) updates.tracking_link = body.tracking_link;
+    if (body.country !== undefined) updates.country = body.country;
+    if (body.categoryId !== undefined) updates.category_id = body.categoryId || null;
+    if (body.category_id !== undefined) updates.category_id = body.category_id || null;
 
-    // Make sure something is being updated
-    if (Object.keys(updates).length === 0) {
+    const fieldCount = Object.keys(updates).length;
+    if (fieldCount <= 1) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'No fields provided to update.'
+          error: 'No fields provided to update.',
         }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Try finding the record first (using same flexible logic as GET) to get its primary key
-    let existingData = null;
-
-    // 1) If idParam is numeric, try matching store_id first
-    if (/^\d+$/.test(idParam)) {
-      const { data } = await supabase
-        .from('stores')
-        .select('store_id')
-        .eq('store_id', Number(idParam))
-        .limit(1)
-        .maybeSingle();
-      existingData = data;
-    }
-
-    // 2) If not found yet (or idParam wasn't numeric), try matching slug
-    if (!existingData) {
-      const { data } = await supabase
-        .from('stores')
-        .select('store_id')
-        .eq('slug', idParam)
-        .limit(1)
-        .maybeSingle();
-      existingData = data;
-    }
-
-    // 3) If not found, try case-insensitive slug match
-    if (!existingData) {
-      const { data } = await supabase
-        .from('stores')
-        .select('store_id')
-        .ilike('slug', idParam)
-        .limit(1)
-        .maybeSingle();
-      existingData = data;
-    }
-
-    // 4) If still not found, try matching store_name
-    if (!existingData && idParam) {
-      const nameGuess = idParam.replace(/-/g, ' ');
-      const { data } = await supabase
-        .from('stores')
-        .select('store_id')
-        .ilike('store_name', nameGuess)
-        .limit(1)
-        .maybeSingle();
-      existingData = data;
-    }
-
-    if (!existingData) {
+    const existing = await findStoreRowByParam(idParam);
+    if (!existing?.id) {
       return new Response(
         JSON.stringify({ success: false, error: 'Store not found' }),
         { status: 404, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Now update using the found store_id (most reliable)
     const { data, error } = await supabase
       .from('stores')
       .update(updates)
-      .eq('store_id', existingData.store_id)
+      .eq('id', String(existing.id))
       .select('*')
       .maybeSingle();
 
@@ -225,28 +118,26 @@ export async function PATCH(
       );
     }
 
-    // Reformat output the same as GET
-    const row = data as any;
-    const store = {
-      id: row.id?.toString(),
-      storeId: row.store_id ? (typeof row.store_id === 'number' ? row.store_id : parseInt(row.store_id, 10)) : undefined,
-      name: row.store_name || row.name || '',
-      subStoreName: row.subStoreName || row.sub_store_name || undefined,
-      slug: row.slug || undefined,
-      description: row.description || '',
-      logoUrl: row.store_logo_url || row.logo_url || undefined,
-      websiteUrl: row.website_url || undefined,
-      trackingLink: row.tracking_link || undefined,
-      seoTitle: row.seoTitle || row.seo_title || undefined,
-      seoDescription: row.seoDescription || row.seo_description || undefined,
-      isTrending: row.isTrending ?? row.featured ?? false,
-      layoutPosition: row.layout_position || null,
-      categoryId: row.category_id || null,
-      createdAt: row.created_at || undefined,
-    };
+    let syncedCoupons = 0;
+    if (body.tracking_link !== undefined) {
+      try {
+        const rowAfterUpdate = data as Record<string, unknown>;
+        syncedCoupons = await syncStoreCouponUrls({
+          storeUuid: rowAfterUpdate.id != null ? String(rowAfterUpdate.id) : undefined,
+          storeName: String(rowAfterUpdate.store_name || rowAfterUpdate.name || ''),
+          trackingLink: body.tracking_link,
+        });
+      } catch (syncError) {
+        console.error('Failed to sync coupon URLs for store:', syncError);
+      }
+    }
 
     return new Response(
-      JSON.stringify({ success: true, store }),
+      JSON.stringify({
+        success: true,
+        store: mapStoreRowToResponse(data as Record<string, unknown>),
+        syncedCoupons,
+      }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err) {
@@ -255,7 +146,7 @@ export async function PATCH(
     return new Response(
       JSON.stringify({
         success: false,
-        error: err instanceof Error ? err.message : 'Unknown error updating store'
+        error: err instanceof Error ? err.message : 'Unknown error updating store',
       }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
@@ -269,68 +160,16 @@ export async function DELETE(
   try {
     const supabase = supabaseServer();
     const { id } = await params;
-    const idParam = id ?? '';
+    const existing = await findStoreRowByParam(id ?? '');
 
-    // Try finding the record first to ensure it exists and get correct ID
-    let existingData = null;
-
-    // 1) If idParam is numeric, try matching store_id first
-    if (/^\d+$/.test(idParam)) {
-      const { data } = await supabase
-        .from('stores')
-        .select('store_id')
-        .eq('store_id', Number(idParam))
-        .limit(1)
-        .maybeSingle();
-      existingData = data;
-    }
-
-    // 2) If not found yet, try matching slug
-    if (!existingData) {
-      const { data } = await supabase
-        .from('stores')
-        .select('store_id')
-        .eq('slug', idParam)
-        .limit(1)
-        .maybeSingle();
-      existingData = data;
-    }
-
-    // 3) Fallback: case-insensitive slug
-    if (!existingData) {
-      const { data } = await supabase
-        .from('stores')
-        .select('store_id')
-        .ilike('slug', idParam)
-        .limit(1)
-        .maybeSingle();
-      existingData = data;
-    }
-
-    // 4) Fallback: name
-    if (!existingData && idParam) {
-      const nameGuess = idParam.replace(/-/g, ' ');
-      const { data } = await supabase
-        .from('stores')
-        .select('store_id')
-        .ilike('store_name', nameGuess)
-        .limit(1)
-        .maybeSingle();
-      existingData = data;
-    }
-
-    if (!existingData) {
+    if (!existing?.id) {
       return new Response(
         JSON.stringify({ success: false, error: 'Store not found' }),
         { status: 404, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    // Delete the record using store_id
-    const { error } = await supabase
-      .from('stores')
-      .delete()
-      .eq('store_id', existingData.store_id);
+    const { error } = await supabase.from('stores').delete().eq('id', String(existing.id));
 
     if (error) {
       console.error('Error deleting store:', error);
@@ -340,16 +179,16 @@ export async function DELETE(
       );
     }
 
-    return new Response(
-      JSON.stringify({ success: true }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (err) {
     console.error('Unexpected error in DELETE store route:', err);
     return new Response(
       JSON.stringify({
         success: false,
-        error: err instanceof Error ? err.message : 'Unknown error deleting store'
+        error: err instanceof Error ? err.message : 'Unknown error deleting store',
       }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );

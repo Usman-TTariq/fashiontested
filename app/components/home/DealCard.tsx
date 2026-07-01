@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Coupon } from '@/lib/services/couponService';
+import { getCouponDisplayTitle } from '@/lib/utils/couponDisplay';
 import CouponPopup from '../CouponPopup';
 
 interface DealCardProps {
@@ -63,12 +64,12 @@ export default function DealCard({ coupon, tag = 'ONLINE ONLY' }: DealCardProps)
         </p>
 
         <p className="text-sm font-semibold text-brand-navy text-center line-clamp-2 mb-1">
-          {coupon.storeName || coupon.code}
+          {getCouponDisplayTitle(coupon)}
         </p>
 
-        {coupon.description && (
-          <p className="text-xs text-brand-muted text-center line-clamp-2 mb-4 flex-grow">
-            {coupon.description}
+        {coupon.storeName && (
+          <p className="text-xs text-brand-muted text-center line-clamp-1 mb-4 flex-grow">
+            {coupon.storeName}
           </p>
         )}
 

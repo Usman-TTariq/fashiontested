@@ -1,116 +1,253 @@
 'use client';
 
 import Link from 'next/link';
-import { Facebook, Twitter, Instagram, Youtube, Linkedin, Phone } from 'lucide-react';
-import Newsletter from './Newsletter';
+import { useState } from 'react';
+import { Facebook, Twitter, Instagram, Mail, ChevronUp } from 'lucide-react';
+import ArticleImage from '@/app/components/ArticleImage';
+import BrandLogo from '@/app/components/BrandLogo';
+import { siteConfig } from '@/lib/seo/config';
 
-interface FooterProps {
-  showNewsletter?: boolean;
+export interface FooterPost {
+  id?: string;
+  title: string;
+  date?: string;
+  imageUrl?: string;
+  category?: string;
 }
 
-export default function Footer({ showNewsletter = false }: FooterProps) {
+export interface FooterBlogData {
+  recent: FooterPost[];
+  popular: FooterPost[];
+  categories: { name: string; count: number }[];
+}
+
+interface FooterProps {
+  blogData?: FooterBlogData;
+}
+
+const QUICK_LINKS = [
+  { label: 'About', href: '/about-us' },
+  { label: 'Contact Us', href: '/contact-us' },
+  { label: 'Imprint', href: '/terms-and-conditions' },
+  { label: 'Promotions', href: '/coupons' },
+  { label: 'Blog', href: '/blogs' },
+] as const;
+
+function FooterQuickLinks() {
   return (
-    <footer className="bg-brand-navy text-white">
-      <div className="home-container">
-        <div className="py-12 border-b border-white/10">
-          <div className={`grid grid-cols-1 md:grid-cols-2 ${showNewsletter ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-8`}>
+    <div>
+      <h3 className="text-base font-bold text-brand-navy mb-4 font-serif">Quick Links</h3>
+      <ul>
+        {QUICK_LINKS.map((link) => (
+          <li key={link.href} className="border-b border-tan last:border-0">
+            <Link
+              href={link.href}
+              className="block py-3 text-sm font-medium text-brand-navy hover:text-brand-accent transition-colors"
+            >
+              {link.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function FooterPostItem({ post }: { post: FooterPost }) {
+  const content = (
+    <div className="flex gap-3 group py-3">
+      <div className="w-16 h-16 shrink-0 overflow-hidden bg-tan/40">
+        <ArticleImage
+          src={post.imageUrl}
+          alt={post.title}
+          category={post.category}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="min-w-0 flex-1">
+        <h4 className="text-sm font-bold text-brand-navy leading-snug line-clamp-2 group-hover:text-brand-accent transition-colors">
+          {post.title}
+        </h4>
+        {post.date && <p className="mt-1 text-xs text-brand-muted">{post.date}</p>}
+      </div>
+    </div>
+  );
+
+  if (post.id) {
+    return (
+      <Link href={`/blogs/${post.id}`} className="block border-b border-tan last:border-0">
+        {content}
+      </Link>
+    );
+  }
+
+  return <div className="border-b border-tan last:border-0">{content}</div>;
+}
+
+function FooterNewsletterInline() {
+  const [email, setEmail] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    alert(`Thank you for subscribing with ${email}!`);
+    setEmail('');
+  };
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col sm:flex-row w-full max-w-xl mx-auto overflow-hidden border border-tan bg-white"
+    >
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Enter your email address"
+        required
+        className="flex-1 px-4 py-3 text-sm text-gray-800 outline-none min-w-0"
+        aria-label="Email address"
+      />
+      <button
+        type="submit"
+        className="flex items-center justify-center gap-2 bg-brand-navy text-brand-cyan px-6 py-3 text-sm font-bold uppercase tracking-wide hover:bg-brand-navy-dark transition-colors shrink-0"
+      >
+        <Mail className="w-4 h-4" />
+        Subscribe
+      </button>
+    </form>
+  );
+}
+
+export default function Footer({ blogData }: FooterProps) {
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const recent = blogData?.recent ?? [];
+  const popular = blogData?.popular ?? [];
+  const categories = blogData?.categories ?? [];
+
+  return (
+    <footer className="relative bg-cream text-brand-navy border-t border-tan">
+      {/* Blog columns + Quick Links */}
+      <div className="border-b border-tan">
+        <div className="home-container py-10 sm:py-12">
+          <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8 lg:items-stretch">
             <div>
-              <h3 className="text-lg font-bold mb-4">About Us</h3>
-              <p className="text-gray-300 text-sm mb-4 leading-relaxed">
-                Sample Store 2 brings you verified coupon codes, exclusive deals, and savings from
-                hundreds of top retailers — so you save more on every purchase.
-              </p>
-              <div className="flex items-center gap-2 text-sm text-gray-300">
-                <Phone className="w-4 h-4 shrink-0" />
-                <span>(302) 555-0107</span>
-              </div>
+              <h3 className="text-base font-bold text-brand-navy mb-4 font-serif">Recent Posts</h3>
+              {recent.length === 0 ? (
+                <p className="text-sm text-brand-muted">No posts yet.</p>
+              ) : (
+                recent.map((post) => (
+                  <FooterPostItem key={`recent-${post.id || post.title}`} post={post} />
+                ))
+              )}
             </div>
 
             <div>
-              <h3 className="text-lg font-bold mb-4">Quick Links</h3>
-              <ul className="space-y-2">
-                {[
-                  { href: '/', label: 'Home' },
-                  { href: '/about-us', label: 'About Us' },
-                  { href: '/contact-us', label: 'Contact Us' },
-                  { href: '/privacy-policy', label: 'Privacy Policy' },
-                  { href: '/coupons', label: 'Browse Deals' },
-                  { href: '/stores', label: 'Stores' },
-                  { href: '/categories', label: 'Categories' },
-                  { href: '/blogs', label: 'Blog' },
-                ].map((link) => (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      className="text-gray-300 hover:text-brand-red transition text-sm"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              <h3 className="text-base font-bold text-brand-navy mb-4 font-serif">Popular Posts</h3>
+              {popular.length === 0 ? (
+                <p className="text-sm text-brand-muted">No posts yet.</p>
+              ) : (
+                popular.map((post) => (
+                  <FooterPostItem key={`popular-${post.id || post.title}`} post={post} />
+                ))
+              )}
             </div>
 
             <div>
-              <h3 className="text-lg font-bold mb-4">Contact</h3>
-              <div className="space-y-3 text-sm">
-                <div>
-                  <p className="font-semibold mb-1">Email</p>
-                  <a href="mailto:demo@gmail.com" className="text-gray-300 hover:text-brand-red transition">
-                    demo@gmail.com
-                  </a>
-                </div>
-                <div>
-                  <p className="font-semibold mb-1">Location</p>
-                  <p className="text-gray-300">
-                    1901 Thornridge Cir. Hawaii
-                    <br />
-                    54126
-                  </p>
-                </div>
-              </div>
+              <h3 className="text-base font-bold text-brand-navy mb-4 font-serif">Popular Categories</h3>
+              {categories.length === 0 ? (
+                <p className="text-sm text-brand-muted">No categories yet.</p>
+              ) : (
+                <ul>
+                  {categories.map(({ name, count }) => (
+                    <li key={name} className="border-b border-tan last:border-0">
+                      <Link
+                        href={`/blogs?category=${name.toLowerCase()}`}
+                        className="flex items-center justify-between py-3 text-sm font-medium text-brand-navy hover:text-brand-accent transition-colors uppercase tracking-wide"
+                      >
+                        <span>{name}</span>
+                        <span className="text-brand-muted normal-case">({count})</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
-            {showNewsletter && (
-              <div>
-                <h3 className="text-lg font-bold mb-4">Newsletter</h3>
-                <Newsletter variant="footer" />
-              </div>
-            )}
+            <FooterQuickLinks />
           </div>
-        </div>
-
-        <div className="py-6 border-b border-white/10">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2">
-              <img src="/sample-store-2-icon.svg" alt="Sample Store 2" className="w-10 h-10 object-contain" />
-              <span className="text-xl font-bold tracking-tight">
-                Sample Store <span className="text-brand-orange">2</span>
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-400 mr-1 hidden sm:inline">Follow us</span>
-              {[Facebook, Twitter, Instagram, Youtube, Linkedin].map((Icon, i) => (
-                <a
-                  key={i}
-                  href="#"
-                  aria-label="Social link"
-                  className="w-9 h-9 bg-brand-navy-dark rounded-full flex items-center justify-center hover:bg-brand-red hover:text-white transition"
-                >
-                  <Icon className="w-4 h-4" />
-                </a>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="py-6">
-          <p className="text-sm text-gray-400 text-center md:text-left">
-            Copyright © 2025{' '}
-            <span className="text-brand-orange font-semibold">Sample Store 2</span>. All rights reserved.
-          </p>
         </div>
       </div>
+
+      {/* Branding + newsletter + legal */}
+      <div className="home-container py-10 sm:py-12 text-center relative">
+        <Link href="/" className="inline-flex items-center gap-2 mb-4">
+          <img src={siteConfig.logo} alt={siteConfig.name} className="w-10 h-10 object-contain" />
+          <BrandLogo className="text-lg sm:text-xl font-bold tracking-[0.08em] text-brand-navy uppercase whitespace-nowrap" />
+        </Link>
+
+        <p className="max-w-2xl mx-auto text-sm text-brand-muted leading-relaxed mb-6 px-4">
+          {siteConfig.tagline}
+        </p>
+
+        <div className="flex items-center justify-center gap-4 mb-8">
+          {[
+            { Icon: Facebook, label: 'Facebook' },
+            { Icon: Twitter, label: 'Twitter' },
+            { Icon: Instagram, label: 'Instagram' },
+          ].map(({ Icon, label }) => (
+            <a
+              key={label}
+              href="#"
+              aria-label={label}
+              className="text-brand-navy hover:text-brand-accent transition-colors"
+            >
+              <Icon className="w-5 h-5" />
+            </a>
+          ))}
+        </div>
+
+        <div className="px-4 mb-8">
+          <FooterNewsletterInline />
+        </div>
+
+        <p className="text-xs sm:text-sm text-brand-muted">
+          Copyright © {new Date().getFullYear()} {siteConfig.name}. All Rights Reserved.{' '}
+          <span className="hidden sm:inline">|</span>{' '}
+          <Link href="/about-us" className="hover:text-brand-accent transition-colors">
+            About Us
+          </Link>{' '}
+          |{' '}
+          <Link href="/terms-and-conditions" className="hover:text-brand-accent transition-colors">
+            Terms &amp; Conditions
+          </Link>{' '}
+          |{' '}
+          <Link href="/privacy-policy" className="hover:text-brand-accent transition-colors">
+            Privacy Policy
+          </Link>
+        </p>
+
+        <button
+          type="button"
+          onClick={scrollToTop}
+          aria-label="Back to top"
+          className="absolute right-4 bottom-4 sm:right-0 sm:bottom-6 w-10 h-10 bg-brand-cyan text-brand-navy flex items-center justify-center hover:bg-brand-orange transition-colors shadow-md"
+        >
+          <ChevronUp className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Subtle skyline decoration */}
+      <div
+        className="h-16 sm:h-24 opacity-30 pointer-events-none"
+        style={{
+          background:
+            'linear-gradient(to top, rgba(199,57,95,0.06) 0%, transparent 100%), repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(199,57,95,0.03) 40px, rgba(199,57,95,0.03) 41px)',
+        }}
+        aria-hidden
+      />
     </footer>
   );
 }

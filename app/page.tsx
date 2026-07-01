@@ -1,46 +1,24 @@
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import FAQSection from "./components/FAQSection";
-import HeroSlider from "./components/home/HeroSlider";
-import FeaturedDealsSection from "./components/home/FeaturedDealsSection";
-import CategoryDealsSections from "./components/home/CategoryDealsSections";
-import SavingsTipsSection from "./components/home/SavingsTipsSection";
-import FeaturedStoresSection from "./components/home/FeaturedStoresSection";
-import SeoContentSection from "./components/home/SeoContentSection";
-import { getBannersWithLayout } from "@/lib/services/bannerService";
+import Navbar from './components/Navbar'
+import SiteFooter from './components/SiteFooter'
+import BlogCentricHome from './components/home/BlogCentricHome'
+import { getArticlesForHome } from '@/lib/server/newsServer'
+import { siteConfig } from '@/lib/seo/config'
 
-export const revalidate = 0;
+export const metadata = {
+  title: 'Success Blogs, Coupons & Thrilling Experiences',
+  description: `Inspiring blogs, exclusive promo codes, and money-saving tips from ${siteConfig.name} — your path to smarter shopping.`,
+}
+
+export const revalidate = 60
 
 export default async function Home() {
-  const banners = await getBannersWithLayout();
+  const articles = await getArticlesForHome()
 
   return (
     <div className="min-h-screen bg-cream">
-      <Navbar />
-
-      {/* 1. Hero — promotional slider + side promos */}
-      <HeroSlider initialBanners={banners} />
-
-      {/* 2. Featured deals grid */}
-      <FeaturedDealsSection />
-
-      {/* 3. Category-based deal blocks */}
-      <CategoryDealsSections />
-
-      {/* 5. Savings tips / blog */}
-      <SavingsTipsSection />
-
-      {/* 6. Featured stores logo grid */}
-      <FeaturedStoresSection />
-
-      {/* 7. FAQ accordion */}
-      <FAQSection />
-
-      {/* 8. SEO content + internal links */}
-      <SeoContentSection />
-
-      {/* 9. Footer with newsletter */}
-      <Footer showNewsletter />
+      <Navbar variant="home" />
+      <BlogCentricHome articles={articles} />
+      <SiteFooter />
     </div>
-  );
+  )
 }

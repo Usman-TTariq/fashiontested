@@ -1,6 +1,6 @@
-# sample-store-2
+# Favento
 
-Sample Store 2 — a Next.js coupon and deals site with Supabase backend.
+Favento — a Next.js coupon and deals site with Supabase backend.
 
 ## Stack
 

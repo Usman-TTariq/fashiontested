@@ -1,18 +1,189 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getCategories, Category } from "@/lib/services/categoryService";
-import { getTrendingStores, getStores, Store } from "@/lib/services/storeService";
+import { Coupon } from "@/lib/services/couponService";
+import { getStores, Store } from "@/lib/services/storeService";
 import { getFavoritesCount } from "@/lib/services/favoritesService";
 import { getUnreadCount, initializeSampleNotifications } from "@/lib/services/notificationsService";
+import { BLOG_CATEGORIES } from "@/lib/utils/articleMeta";
+import { getCouponSubtitle } from "@/lib/utils/search";
+import { getCouponDisplayTitle } from "@/lib/utils/couponDisplay";
+import { siteConfig } from "@/lib/seo/config";
+import BrandLogo from "@/app/components/BrandLogo";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import {
   Search, Menu, X, ChevronDown, User,
-  Phone, Heart, ShoppingBag, Moon,
+  Phone, Heart, Moon, Loader2,
   MapPin, ChevronLeft, ChevronRight, Facebook, Twitter, Instagram, Youtube
 } from "lucide-react";
+
+type SearchResults = {
+  stores: Store[];
+  categories: Category[];
+  coupons: Coupon[];
+};
+
+interface SearchSuggestionsDropdownProps {
+  show: boolean;
+  loading: boolean;
+  query: string;
+  results: SearchResults;
+  onStoreClick: (store: Store) => void;
+  onCategoryClick: (category: Category) => void;
+  onCouponClick: (coupon: Coupon) => void;
+  onViewAll: () => void;
+}
+
+function SearchSuggestionsDropdown({
+  show,
+  loading,
+  query,
+  results,
+  onStoreClick,
+  onCategoryClick,
+  onCouponClick,
+  onViewAll,
+}: SearchSuggestionsDropdownProps) {
+  if (!show || !query.trim()) return null;
+
+  const hasResults =
+    results.stores.length > 0 ||
+    results.categories.length > 0 ||
+    results.coupons.length > 0;
+
+  return (
+    <div className="absolute left-0 right-0 top-full z-[200] mt-2 max-h-[min(24rem,70vh)] overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-2xl">
+      {loading && !hasResults ? (
+        <div className="flex items-center justify-center gap-2 p-4 text-sm text-gray-500">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Searching...
+        </div>
+      ) : !hasResults ? (
+        <div className="p-4 text-center text-sm text-gray-500">
+          No results for &ldquo;{query}&rdquo;
+        </div>
+      ) : (
+        <>
+          {results.stores.length > 0 && (
+            <div className="p-2">
+              <div className="px-3 py-2 text-xs font-bold uppercase tracking-wide text-gray-500">Stores</div>
+              {results.stores.map((store) => (
+                <button
+                  key={store.id}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => onStoreClick(store)}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-gray-50"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-100 bg-white">
+                    <img
+                      src={store.logoUrl || getStoreFaviconUrl(store)}
+                      alt={store.name}
+                      className="h-8 w-8 object-contain"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-semibold text-gray-900">{store.name}</div>
+                    {store.description && (
+                      <div className="truncate text-xs text-gray-500">{store.description}</div>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {results.coupons.length > 0 && (
+            <div className={`p-2 ${results.stores.length > 0 ? 'border-t border-gray-100' : ''}`}>
+              <div className="px-3 py-2 text-xs font-bold uppercase tracking-wide text-gray-500">
+                Deals &amp; Coupons
+              </div>
+              {results.coupons.map((coupon) => (
+                <button
+                  key={coupon.id}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => onCouponClick(coupon)}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-gray-50"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
+                    {coupon.logoUrl ? (
+                      <img src={coupon.logoUrl} alt="" className="h-8 w-8 object-contain" />
+                    ) : (
+                      <span className="text-xs font-bold text-brand-navy">
+                        {(coupon.storeName || coupon.code || 'D').charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-semibold text-gray-900">
+                      {getCouponDisplayTitle(coupon)}
+                    </div>
+                    <div className="truncate text-xs text-gray-500">{getCouponSubtitle(coupon)}</div>
+                  </div>
+                  {coupon.discount > 0 && (
+                    <span className="shrink-0 rounded bg-brand-cyan/40 px-2 py-0.5 text-[10px] font-bold text-brand-navy">
+                      {coupon.discountType === 'percentage' ? `${coupon.discount}%` : `$${coupon.discount}`}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {results.categories.length > 0 && (
+            <div
+              className={`p-2 ${
+                results.stores.length > 0 || results.coupons.length > 0 ? 'border-t border-gray-100' : ''
+              }`}
+            >
+              <div className="px-3 py-2 text-xs font-bold uppercase tracking-wide text-gray-500">Categories</div>
+              {results.categories.map((category) => (
+                <button
+                  key={category.id}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => onCategoryClick(category)}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-gray-50"
+                >
+                  <div
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
+                    style={{ backgroundColor: category.backgroundColor || '#C7395F' }}
+                  >
+                    {category.logoUrl ? (
+                      <img src={category.logoUrl} className="h-6 w-6 object-contain" alt="" />
+                    ) : (
+                      category.name.charAt(0)
+                    )}
+                  </div>
+                  <div className="truncate text-sm font-semibold text-gray-900">{category.name}</div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="sticky bottom-0 border-t border-gray-100 bg-white p-2">
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={onViewAll}
+              className="w-full rounded-lg px-3 py-2 text-center text-sm font-semibold text-brand-navy transition-colors hover:bg-brand-cyan/30"
+            >
+              View all results for &ldquo;{query}&rdquo;
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 // Helper function to get favicon URL from store data
 const getStoreFaviconUrl = (store: Store): string => {
@@ -50,11 +221,124 @@ const getStoreFaviconUrl = (store: Store): string => {
   return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 };
 
-export default function Navbar() {
+function HomeLogo() {
+  return (
+    <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group">
+      <img
+        src={siteConfig.logo}
+        alt={siteConfig.name}
+        className="w-10 h-10 sm:w-11 sm:h-11 object-contain shrink-0"
+      />
+      <BrandLogo className="text-[15px] sm:text-lg font-bold tracking-wide text-brand-navy uppercase whitespace-nowrap leading-none" />
+    </Link>
+  );
+}
+
+interface HomeSearchPanelProps {
+  open: boolean;
+  searchQuery: string;
+  showSuggestions: boolean;
+  searchLoading: boolean;
+  searchResults: SearchResults;
+  onSearchChange: (value: string) => void;
+  onSearchSubmit: (e?: React.FormEvent) => void;
+  onClose: () => void;
+  onShowSuggestions: () => void;
+  onStoreClick: (store: Store) => void;
+  onCategoryClick: (category: Category) => void;
+  onCouponClick: (coupon: Coupon) => void;
+  onViewAll: () => void;
+}
+
+function HomeSearchPanel({
+  open,
+  searchQuery,
+  showSuggestions,
+  searchLoading,
+  searchResults,
+  onSearchChange,
+  onSearchSubmit,
+  onClose,
+  onShowSuggestions,
+  onStoreClick,
+  onCategoryClick,
+  onCouponClick,
+  onViewAll,
+}: HomeSearchPanelProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (open) {
+      const id = requestAnimationFrame(() => inputRef.current?.focus());
+      return () => cancelAnimationFrame(id);
+    }
+  }, [open]);
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.2 }}
+          className="relative z-[130] border-t border-tan bg-cream"
+        >
+          <div className="home-container py-4">
+            <form onSubmit={onSearchSubmit} className="relative mx-auto max-w-2xl">
+              <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-sm">
+                <Search className="h-4 w-4 shrink-0 text-gray-400" />
+                <input
+                  ref={inputRef}
+                  type="search"
+                  placeholder="Search stores, coupons, deals..."
+                  className="min-w-0 flex-1 bg-transparent text-sm text-gray-800 outline-none placeholder:text-gray-400"
+                  value={searchQuery}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  onFocus={onShowSuggestions}
+                />
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 lg:hidden"
+                  aria-label="Close search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+                <button
+                  type="submit"
+                  className="shrink-0 rounded-lg bg-brand-navy px-4 py-1.5 text-xs font-bold text-brand-cyan hover:bg-brand-navy-dark transition-colors"
+                >
+                  Search
+                </button>
+              </div>
+
+              <SearchSuggestionsDropdown
+                show={showSuggestions}
+                loading={searchLoading}
+                query={searchQuery}
+                results={searchResults}
+                onStoreClick={onStoreClick}
+                onCategoryClick={onCategoryClick}
+                onCouponClick={onCouponClick}
+                onViewAll={onViewAll}
+              />
+            </form>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+export default function Navbar({ variant = "default" }: { variant?: "default" | "home" }) {
   const pathname = usePathname();
   const router = useRouter();
+  const isHomeNav = variant === "home";
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [homeSearchOpen, setHomeSearchOpen] = useState(false);
+  const [homeActiveDropdown, setHomeActiveDropdown] = useState<string | null>(null);
 
   // Data State
   const [categories, setCategories] = useState<Category[]>([]);
@@ -66,17 +350,17 @@ export default function Navbar() {
   const [promoIndex, setPromoIndex] = useState(0);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [searchResults, setSearchResults] = useState<{
-    stores: Store[];
-    categories: Category[];
-  }>({ stores: [], categories: [] });
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState<SearchResults>({
+    stores: [],
+    categories: [],
+    coupons: [],
+  });
 
   const { scrollY } = useScroll();
 
   useMotionValueEvent(scrollY, "change", (latest) => {
-    // Height of TopBar (~40px) + MiddleBar (~90px) = ~130px
-    // We show shadow right as it sticks
-    setIsScrolled(latest > 120);
+    setIsScrolled(latest > (isHomeNav ? 40 : 120));
   });
 
   const promotions = [
@@ -122,51 +406,81 @@ export default function Navbar() {
     setNotificationsCount(getUnreadCount());
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSearch = (e?: React.FormEvent) => {
+    e?.preventDefault();
     const query = searchQuery.trim();
     if (query) {
       setShowSuggestions(false);
+      setHomeSearchOpen(false);
       router.push(`/search?q=${encodeURIComponent(query)}`);
     }
   };
 
-  // Handle search input change and filter results
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
-
-    if (value.trim().length > 0) {
-      const searchTerm = value.toLowerCase().trim();
-
-      // Filter stores
-      const filteredStores = trendingStores.filter(store =>
-        store.name.toLowerCase().includes(searchTerm)
-      ).slice(0, 5);
-
-      // Filter categories
-      const filteredCategories = categories.filter(cat =>
-        cat.name.toLowerCase().includes(searchTerm)
-      ).slice(0, 3);
-
-      setSearchResults({
-        stores: filteredStores,
-        categories: filteredCategories
-      });
-      setShowSuggestions(true);
-    } else {
+    if (!value.trim()) {
       setShowSuggestions(false);
-      setSearchResults({ stores: [], categories: [] });
+      setSearchResults({ stores: [], categories: [], coupons: [] });
+      setSearchLoading(false);
+      return;
     }
+    setSearchLoading(true);
   };
 
-  const handleSuggestionClick = (type: 'store' | 'category', item: Store | Category) => {
+  useEffect(() => {
+    const term = searchQuery.trim();
+    if (term.length < 1) {
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search/suggest?q=${encodeURIComponent(term)}`, {
+          signal: controller.signal,
+        });
+        const data = await res.json();
+        if (data.success && data.results) {
+          setSearchResults({
+            stores: data.results.stores || [],
+            categories: data.results.categories || [],
+            coupons: data.results.coupons || [],
+          });
+          setShowSuggestions(true);
+        }
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Search suggest error:', error);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setSearchLoading(false);
+        }
+      }
+    }, 280);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [searchQuery]);
+
+  const handleSuggestionClick = (type: 'store' | 'category' | 'coupon', item: Store | Category | Coupon) => {
     setShowSuggestions(false);
+    setHomeSearchOpen(false);
     if (type === 'store') {
       const store = item as Store;
       router.push(`/stores/${store.slug || store.id}`);
-    } else {
+    } else if (type === 'category') {
       const category = item as Category;
       router.push(`/categories/${category.id}`);
+    } else {
+      const coupon = item as Coupon;
+      if (coupon.url?.trim()) {
+        window.open(coupon.url, '_blank', 'noopener,noreferrer');
+      } else {
+        router.push(`/search?q=${encodeURIComponent(getCouponDisplayTitle(coupon))}`);
+      }
     }
     setSearchQuery('');
   };
@@ -182,7 +496,7 @@ export default function Navbar() {
             <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] text-white font-bold" style={{ backgroundColor: cat.backgroundColor || '#ccc' }}>
               {cat.logoUrl ? <img src={cat.logoUrl} className="w-4 h-4 object-contain" /> : cat.name.charAt(0)}
             </div>
-            <span className="text-sm text-gray-700 font-medium group-hover/item:text-[#221E1D] transition-colors">{cat.name}</span>
+            <span className="text-sm text-gray-700 font-medium group-hover/item:text-[#C7395F] transition-colors">{cat.name}</span>
           </Link>
         ))}
       </div>
@@ -218,13 +532,13 @@ export default function Navbar() {
                     target.style.display = 'none';
                     const parent = target.parentElement;
                     if (parent) {
-                      parent.innerHTML = `<div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#221E1D] to-brand-navy-light flex items-center justify-center text-white text-xs font-bold">${store.name.charAt(0).toUpperCase()}</div>`;
+                      parent.innerHTML = `<div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#C7395F] to-brand-navy-light flex items-center justify-center text-white text-xs font-bold">${store.name.charAt(0).toUpperCase()}</div>`;
                     }
                   }
                 }}
               />
             </div>
-            <span className="text-sm text-gray-700 font-medium group-hover/item:text-[#221E1D] transition-colors truncate">{store.name}</span>
+            <span className="text-sm text-gray-700 font-medium group-hover/item:text-[#C7395F] transition-colors truncate">{store.name}</span>
           </Link>
         ))}
       </div>
@@ -242,7 +556,7 @@ export default function Navbar() {
   const SimpleMenu = ({ items }: { items: { label: string; href: string }[] }) => (
     <div className="w-48 bg-white rounded-b-xl shadow-xl border border-gray-100 py-2">
       {items.map((item) => (
-        <Link key={item.label} href={item.href} className="block px-4 py-2 text-sm text-gray-600 hover:text-[#221E1D] hover:bg-gray-50 font-medium">
+        <Link key={item.label} href={item.href} className="block px-4 py-2 text-sm text-gray-600 hover:text-[#C7395F] hover:bg-gray-50 font-medium">
           {item.label}
         </Link>
       ))}
@@ -264,13 +578,218 @@ export default function Navbar() {
     },
     {
       name: "Blogs",
-      path: "/blog",
+      path: "/blogs",
       component: <SimpleMenu items={[
-        { label: "Latest News", href: "/blog" },
-        { label: "Savings Tips", href: "/blog/tips" }
+        { label: "All Articles", href: "/blogs" },
+        { label: "Fashion", href: "/blogs?category=fashion" },
+        { label: "Lifestyle", href: "/blogs?category=lifestyle" },
+        { label: "Travel", href: "/blogs?category=travel" },
       ]} />
     },
   ];
+
+  const homeNavItems = [
+    { name: "Home", href: "/", dropdown: null as { label: string; href: string }[] | null },
+    {
+      name: "Fashion",
+      href: "/blogs?category=fashion",
+      dropdown: [
+        { label: "Fashion Articles", href: "/blogs?category=fashion" },
+        { label: "Beauty", href: "/blogs?category=beauty" },
+        { label: "Fashion Stores", href: "/stores" },
+      ],
+    },
+    {
+      name: "Lifestyle",
+      href: "/blogs?category=lifestyle",
+      dropdown: [
+        { label: "Lifestyle Articles", href: "/blogs?category=lifestyle" },
+        { label: "Health & Wellness", href: "/blogs?category=health" },
+        { label: "Food & Dining", href: "/blogs?category=food" },
+      ],
+    },
+    {
+      name: "Featured",
+      href: "/blogs",
+      dropdown: [
+        { label: "Latest Blogs", href: "/blogs" },
+        { label: "Popular Coupons", href: "/coupons" },
+        { label: "Top Stores", href: "/stores" },
+        { label: "All Categories", href: "/categories" },
+      ],
+    },
+    { name: "Promotions", href: "/coupons", dropdown: null },
+  ];
+
+  if (isHomeNav) {
+    return (
+      <header className="sticky top-0 z-[120] bg-cream border-b border-tan">
+        <div className="home-container">
+          <div className="relative flex items-center justify-center py-5 min-h-[76px]">
+            <button
+              type="button"
+              className="absolute left-0 lg:hidden p-1 text-brand-navy"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+
+            <HomeLogo />
+
+            <button
+              type="button"
+              onClick={() => {
+                setHomeSearchOpen((open) => !open);
+                if (homeSearchOpen) {
+                  setShowSuggestions(false);
+                  setSearchQuery('');
+                }
+              }}
+              className="absolute right-0 inline-flex items-center gap-2 rounded-lg bg-brand-navy px-4 py-2.5 text-sm font-bold text-brand-cyan hover:bg-brand-navy-dark transition-colors"
+              aria-expanded={homeSearchOpen}
+            >
+              {homeSearchOpen ? <X className="h-4 w-4" strokeWidth={2.5} /> : <Search className="h-4 w-4" strokeWidth={2.5} />}
+              <span>{homeSearchOpen ? 'Close' : 'Search'}</span>
+            </button>
+          </div>
+        </div>
+
+        <HomeSearchPanel
+          open={homeSearchOpen}
+          searchQuery={searchQuery}
+          showSuggestions={showSuggestions}
+          searchLoading={searchLoading}
+          searchResults={searchResults}
+          onSearchChange={handleSearchChange}
+          onSearchSubmit={handleSearch}
+          onClose={() => {
+            setHomeSearchOpen(false);
+            setShowSuggestions(false);
+            setSearchQuery('');
+            setSearchLoading(false);
+          }}
+          onShowSuggestions={() => {
+            if (searchQuery.trim().length > 0) setShowSuggestions(true);
+          }}
+          onStoreClick={(store) => handleSuggestionClick('store', store)}
+          onCategoryClick={(category) => handleSuggestionClick('category', category)}
+          onCouponClick={(coupon) => handleSuggestionClick('coupon', coupon)}
+          onViewAll={() => handleSearch()}
+        />
+
+        <nav className="hidden lg:block bg-brand-navy border-t border-brand-navy-light">
+          <div className="home-container flex items-center justify-between h-11">
+            <ul className="flex items-center">
+              {homeNavItems.map((item) => (
+                <li
+                  key={item.name}
+                  className="relative"
+                  onMouseEnter={() => item.dropdown && setHomeActiveDropdown(item.name)}
+                  onMouseLeave={() => setHomeActiveDropdown(null)}
+                >
+                  <Link
+                    href={item.href}
+                    className={`flex items-center gap-1 px-3.5 py-2.5 text-sm font-medium transition-colors ${
+                      pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href.split("?")[0]))
+                        ? "text-white"
+                        : "text-white/80 hover:text-white"
+                    }`}
+                  >
+                    {item.name}
+                    {item.dropdown && (
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 transition-transform ${
+                          homeActiveDropdown === item.name ? "rotate-180" : ""
+                        }`}
+                      />
+                    )}
+                  </Link>
+                  <AnimatePresence>
+                    {item.dropdown && homeActiveDropdown === item.name && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 6 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute top-full left-0 z-50 pt-1"
+                      >
+                        <SimpleMenu items={item.dropdown} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/contact-us"
+              className="rounded-md bg-brand-cyan px-4 py-1.5 text-sm font-semibold text-brand-navy hover:bg-brand-cyan/80 transition-colors shrink-0"
+            >
+              Contact Us
+            </Link>
+          </div>
+        </nav>
+
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden border-t border-tan bg-brand-navy lg:hidden"
+            >
+              <div className="px-4 py-5 space-y-1">
+                {homeNavItems.map((item) => (
+                  <div key={item.name}>
+                    <Link
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block py-2.5 text-sm font-medium text-white/90 hover:text-white"
+                    >
+                      {item.name}
+                    </Link>
+                    {item.dropdown && (
+                      <div className="pl-3 pb-2 space-y-1">
+                        {item.dropdown.map((link) => (
+                          <Link
+                            key={link.href}
+                            href={link.href}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="block py-1.5 text-xs text-white/70 hover:text-white"
+                          >
+                            {link.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <Link
+                  href="/contact-us"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="mt-4 inline-block rounded-md bg-brand-cyan px-4 py-2 text-sm font-semibold text-brand-navy"
+                >
+                  Contact Us
+                </Link>
+                <div className="mt-4 flex flex-wrap gap-4 border-t border-white/15 pt-4">
+                  {BLOG_CATEGORIES.map((cat) => (
+                    <Link
+                      key={cat}
+                      href={`/blogs?category=${cat.toLowerCase()}`}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-xs font-semibold tracking-wide text-white/60 uppercase hover:text-white"
+                    >
+                      {cat}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </header>
+    );
+  }
 
   return (
     <>
@@ -313,13 +832,11 @@ export default function Navbar() {
 
             <Link href="/" className="flex-shrink-0 flex items-center gap-2">
               <img
-                src="/sample-store-2-icon.svg"
-                alt="Sample Store 2"
+                src={siteConfig.logo}
+                alt={siteConfig.name}
                 className="w-10 h-10 object-contain"
               />
-              <span className="text-xl sm:text-2xl font-bold tracking-tight text-white">
-                Sample Store <span className="text-brand-orange">2</span>
-              </span>
+              <BrandLogo className="text-xl sm:text-2xl font-bold tracking-tight text-white whitespace-nowrap" accentClassName="text-brand-cyan" />
             </Link>
 
 
@@ -329,110 +846,33 @@ export default function Navbar() {
                   <Search className="w-4 h-4 text-gray-400" />
                 </div>
                 <input
-                  type="text"
+                  type="search"
                   placeholder="Search for stores, coupons, categories..."
                   className="flex-1 px-2 py-1 bg-transparent outline-none text-gray-800 placeholder:text-gray-400 text-sm font-medium"
                   value={searchQuery}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   onFocus={() => searchQuery.trim().length > 0 && setShowSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 />
-                <button type="submit" className="mr-1 bg-brand-yellow text-white px-6 py-2 rounded-full font-bold text-xs hover:bg-brand-yellow-hover transition-all shadow-sm hover:shadow-md">
+                <button type="submit" className="mr-1 bg-brand-navy text-brand-cyan px-6 py-2 rounded-full font-bold text-xs hover:bg-brand-navy-dark transition-all shadow-sm hover:shadow-md">
                   Search
                 </button>
               </form>
 
-              {/* Search Suggestions Dropdown */}
-              {showSuggestions && (searchResults.stores.length > 0 || searchResults.categories.length > 0) && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-[150] max-h-96 overflow-y-auto">
-                  {/* Stores Section */}
-                  {searchResults.stores.length > 0 && (
-                    <div className="p-2">
-                      <div className="px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wide">Stores</div>
-                      {searchResults.stores.map((store) => (
-                        <button
-                          key={store.id}
-                          onClick={() => handleSuggestionClick('store', store)}
-                          className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-50 rounded-lg transition-colors text-left"
-                        >
-                          <div className="w-10 h-10 rounded-full border border-gray-100 bg-white flex items-center justify-center overflow-hidden flex-shrink-0">
-                            <img
-                              src={store.logoUrl || getStoreFaviconUrl(store)}
-                              alt={store.name}
-                              className="w-8 h-8 object-contain"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                const faviconUrl = getStoreFaviconUrl(store);
-                                if (target.src !== faviconUrl && store.logoUrl) {
-                                  target.src = faviconUrl;
-                                } else {
-                                  target.style.display = 'none';
-                                  const parent = target.parentElement;
-                                  if (parent) {
-                                    parent.innerHTML = `<div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#221E1D] to-brand-navy-light flex items-center justify-center text-white text-sm font-bold">${store.name.charAt(0).toUpperCase()}</div>`;
-                                  }
-                                }
-                              }}
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-sm text-gray-900 truncate">{store.name}</div>
-                            {store.description && (
-                              <div className="text-xs text-gray-500 truncate">{store.description}</div>
-                            )}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Categories Section */}
-                  {searchResults.categories.length > 0 && (
-                    <div className="p-2 border-t border-gray-100">
-                      <div className="px-3 py-2 text-xs font-bold text-gray-500 uppercase tracking-wide">Categories</div>
-                      {searchResults.categories.map((category) => (
-                        <button
-                          key={category.id}
-                          onClick={() => handleSuggestionClick('category', category)}
-                          className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-50 rounded-lg transition-colors text-left"
-                        >
-                          <div
-                            className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                            style={{ backgroundColor: category.backgroundColor || '#ccc' }}
-                          >
-                            {category.logoUrl ? (
-                              <img src={category.logoUrl} className="w-6 h-6 object-contain" alt={category.name} />
-                            ) : (
-                              category.name.charAt(0)
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-sm text-gray-900 truncate">{category.name}</div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* View All Results */}
-                  <div className="p-2 border-t border-gray-100">
-                    <button
-                      onClick={() => {
-                        setShowSuggestions(false);
-                        handleSearch({ preventDefault: () => { } } as React.FormEvent);
-                      }}
-                      className="w-full px-3 py-2 text-sm font-semibold text-[#221E1D] hover:bg-brand-red/10 rounded-lg transition-colors text-center"
-                    >
-                      View all results for "{searchQuery}"
-                    </button>
-                  </div>
-                </div>
-              )}
+              <SearchSuggestionsDropdown
+                show={showSuggestions}
+                loading={searchLoading}
+                query={searchQuery}
+                results={searchResults}
+                onStoreClick={(store) => handleSuggestionClick('store', store)}
+                onCategoryClick={(category) => handleSuggestionClick('category', category)}
+                onCouponClick={(coupon) => handleSuggestionClick('coupon', coupon)}
+                onViewAll={() => handleSearch()}
+              />
             </div>
 
             <div className="flex items-center gap-6 text-white">
               <div className="hidden lg:flex items-center gap-2 pr-4 border-r border-white/20">
-                <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center"><Phone className="w-4 h-4 text-[#221E1D]" /></div>
+                <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center"><Phone className="w-4 h-4 text-[#C7395F]" /></div>
                 <div className="flex flex-col leading-none">
                   <span className="text-[10px] text-brand-cyan/90 font-medium tracking-wide">Hotline:</span>
                   <span className="text-sm font-bold">196475</span>
@@ -462,7 +902,7 @@ export default function Navbar() {
                   <Link href={link.path} className={`text-[13px] font-bold flex items-center gap-1 hover:text-brand-navy transition-colors uppercase tracking-wide h-14 ${pathname === link.path ? "text-brand-navy nav-link-active" : "text-gray-700"}`}>
                     {link.name}
                     {link.component && (
-                      <ChevronDown className={`w-3.5 h-3.5 mt-0.5 text-gray-400 group-hover:rotate-180 transition-transform duration-300 ${activeDropdown === link.name ? 'rotate-180 text-[#221E1D]' : ''}`} />
+                      <ChevronDown className={`w-3.5 h-3.5 mt-0.5 text-gray-400 group-hover:rotate-180 transition-transform duration-300 ${activeDropdown === link.name ? 'rotate-180 text-[#C7395F]' : ''}`} />
                     )}
                   </Link>
                   <AnimatePresence>
@@ -476,8 +916,8 @@ export default function Navbar() {
               ))}
             </div>
             <div className="flex items-center gap-6">
-              <Link href="/submit-coupon" className="text-[13px] font-bold text-gray-600 hover:text-[#221E1D] transition-colors uppercase tracking-wide">Submit Coupon</Link>
-              <Link href="/support" className="text-[13px] font-bold text-gray-600 hover:text-[#221E1D] transition-colors uppercase tracking-wide">Support & FAQs</Link>
+              <Link href="/submit-coupon" className="text-[13px] font-bold text-gray-600 hover:text-[#C7395F] transition-colors uppercase tracking-wide">Submit Coupon</Link>
+              <Link href="/support" className="text-[13px] font-bold text-gray-600 hover:text-[#C7395F] transition-colors uppercase tracking-wide">Support & FAQs</Link>
             </div>
           </div>
         </div>
@@ -486,11 +926,11 @@ export default function Navbar() {
       {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="lg:hidden fixed inset-x-0 top-[140px] z-50 bg-[#221E1D] border-t border-white/10 shadow-xl overflow-hidden">
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="lg:hidden fixed inset-x-0 top-[140px] z-50 bg-[#C7395F] border-t border-white/10 shadow-xl overflow-hidden">
             <div className="px-4 py-6 space-y-4 max-h-[80vh] overflow-y-auto text-white">
               <div className="mb-6">
                 <form onSubmit={handleSearch} className="flex w-full bg-white/10 backdrop-blur-sm rounded-full p-1 border border-white/20">
-                  <input type="text" placeholder="Search products..." className="flex-1 px-4 py-2 bg-transparent outline-none text-white placeholder:text-gray-300 text-sm" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                  <input type="search" placeholder="Search products..." className="flex-1 px-4 py-2 bg-transparent outline-none text-white placeholder:text-gray-300 text-sm" value={searchQuery} onChange={(e) => handleSearchChange(e.target.value)} />
                   <button type="submit" className="bg-brand-yellow text-white px-4 py-2 rounded-full font-bold text-xs hover:bg-brand-yellow-hover"><Search className="w-4 h-4" /></button>
                 </form>
               </div>

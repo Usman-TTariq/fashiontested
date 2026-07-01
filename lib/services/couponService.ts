@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/client'
 import { extractOriginalCloudinaryUrl } from '@/lib/utils/cloudinary'
+import { resolveCouponExpiryDate } from '@/lib/utils/couponExpiry'
+import { getCouponPersistedTitle, mapRowDescription } from '@/lib/utils/couponDisplay'
 
 export interface Coupon {
   id?: string
@@ -8,7 +10,7 @@ export interface Coupon {
   storeIds?: string[]
   discount: number
   discountType: 'percentage' | 'fixed'
-  description: string
+  description?: string
   isActive: boolean
   maxUses: number
   currentUses: number
@@ -71,7 +73,7 @@ export async function createCoupon(coupon: Omit<Coupon, 'id'>, logoFile?: File) 
 
     const couponData = {
       code: coupon.code,
-      title: coupon.storeName || coupon.code || 'Coupon',  // Add title field (required by database)
+      title: getCouponPersistedTitle(coupon),
       store_name: coupon.storeName,
       store_ids: coupon.storeIds || [],
       discount_value: coupon.discount,
@@ -80,7 +82,7 @@ export async function createCoupon(coupon: Omit<Coupon, 'id'>, logoFile?: File) 
       status: coupon.isActive ? 'active' : 'inactive',
       max_uses: coupon.maxUses || 0,
       current_uses: coupon.currentUses || 0,
-      expiry_date: coupon.expiryDate,
+      expiry_date: resolveCouponExpiryDate(coupon.expiryDate),
       logo_url: logoUrl,
       url: coupon.url,
       coupon_type: coupon.couponType,
@@ -124,6 +126,7 @@ export async function getCoupons(): Promise<Coupon[]> {
     const { data, error } = await supabase
       .from('coupons')
       .select('*')
+      .order('updated_at', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -138,11 +141,11 @@ export async function getCoupons(): Promise<Coupon[]> {
       storeIds: item.store_ids || [],
       discount: item.discount_value,
       discountType: item.discount_type,
-      description: item.description,
+      description: mapRowDescription(item),
       isActive: item.status === 'active',
       maxUses: item.max_uses || 0,
       currentUses: item.current_uses || 0,
-      expiryDate: item.expiry_date,
+      expiryDate: resolveCouponExpiryDate(item.expiry_date),
       logoUrl: item.logo_url,
       url: item.url,
       couponType: item.coupon_type,
@@ -183,11 +186,11 @@ export async function getActiveCoupons(): Promise<Coupon[]> {
       storeIds: item.store_ids || [],
       discount: item.discount_value,
       discountType: item.discount_type,
-      description: item.description,
+      description: mapRowDescription(item),
       isActive: item.status === 'active',
       maxUses: item.max_uses || 0,
       currentUses: item.current_uses || 0,
-      expiryDate: item.expiry_date,
+      expiryDate: resolveCouponExpiryDate(item.expiry_date),
       logoUrl: item.logo_url,
       url: item.url,
       couponType: item.coupon_type,
@@ -232,7 +235,7 @@ export async function getCouponById(id: string): Promise<Coupon | null> {
       isActive: data.status === 'active',
       maxUses: data.max_uses || 0,
       currentUses: data.current_uses || 0,
-      expiryDate: data.expiry_date,
+      expiryDate: resolveCouponExpiryDate(data.expiry_date),
       logoUrl: data.logo_url,
       url: data.url,
       couponType: data.coupon_type,
@@ -254,46 +257,48 @@ export async function getCouponById(id: string): Promise<Coupon | null> {
 
 export async function updateCoupon(id: string, updates: Partial<Coupon>) {
   try {
-    const supabase = createClient()
-    const updateData: any = {
-      updated_at: new Date().toISOString(),
+    const payload: Record<string, unknown> = {};
+
+    if (updates.code !== undefined) payload.code = updates.code;
+    if (updates.storeName !== undefined) payload.storeName = updates.storeName;
+    if (updates.storeIds !== undefined) payload.storeIds = updates.storeIds;
+    if (updates.discount !== undefined) payload.discount = updates.discount;
+    if (updates.discountType !== undefined) payload.discountType = updates.discountType;
+    if (updates.description !== undefined) payload.description = updates.description;
+    if (updates.isActive !== undefined) payload.isActive = updates.isActive;
+    if (updates.maxUses !== undefined) payload.maxUses = updates.maxUses;
+    if (updates.currentUses !== undefined) payload.currentUses = updates.currentUses;
+    if (updates.expiryDate !== undefined) payload.expiryDate = updates.expiryDate;
+    if (updates.logoUrl !== undefined) payload.logoUrl = updates.logoUrl;
+    if (updates.url !== undefined) payload.url = updates.url;
+    if (updates.couponType !== undefined) payload.couponType = updates.couponType;
+    if (updates.getCodeText !== undefined) payload.getCodeText = updates.getCodeText;
+    if (updates.getDealText !== undefined) payload.getDealText = updates.getDealText;
+    if (updates.isPopular !== undefined) payload.isPopular = updates.isPopular;
+    if (updates.layoutPosition !== undefined) payload.layoutPosition = updates.layoutPosition;
+    if (updates.isLatest !== undefined) payload.isLatest = updates.isLatest;
+    if (updates.latestLayoutPosition !== undefined) {
+      payload.latestLayoutPosition = updates.latestLayoutPosition;
+    }
+    if (updates.categoryId !== undefined) payload.categoryId = updates.categoryId;
+
+    const res = await fetch(`/api/coupons/supabase/by-id/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      console.error('Error updating coupon:', data.error);
+      return { success: false, error: data.error };
     }
 
-    if (updates.code) updateData.code = updates.code
-    if (updates.storeName !== undefined) updateData.store_name = updates.storeName
-    if (updates.storeIds !== undefined) updateData.store_ids = updates.storeIds
-    if (updates.discount !== undefined) updateData.discount_value = updates.discount
-    if (updates.discountType) updateData.discount_type = updates.discountType
-    if (updates.description) updateData.description = updates.description
-    if (updates.isActive !== undefined) updateData.status = updates.isActive ? 'active' : 'inactive'
-    if (updates.maxUses !== undefined) updateData.max_uses = updates.maxUses
-    if (updates.currentUses !== undefined) updateData.current_uses = updates.currentUses
-    if (updates.expiryDate !== undefined) updateData.expiry_date = updates.expiryDate
-    if (updates.logoUrl !== undefined) updateData.logo_url = updates.logoUrl
-    if (updates.url !== undefined) updateData.url = updates.url
-    if (updates.couponType) updateData.coupon_type = updates.couponType
-    if (updates.getCodeText) updateData.get_code_text = updates.getCodeText
-    if (updates.getDealText) updateData.get_deal_text = updates.getDealText
-    if (updates.isPopular !== undefined) updateData.featured = updates.isPopular
-    if (updates.layoutPosition !== undefined) updateData.layout_position = updates.layoutPosition
-    if (updates.isLatest !== undefined) updateData.is_latest = updates.isLatest
-    if (updates.latestLayoutPosition !== undefined) updateData.latest_layout_position = updates.latestLayoutPosition
-    if (updates.categoryId !== undefined) updateData.category_id = updates.categoryId
-
-    const { error } = await supabase
-      .from('coupons')
-      .update(updateData)
-      .eq('id', id)
-
-    if (error) {
-      console.error('Error updating coupon:', error)
-      return { success: false, error }
-    }
-
-    return { success: true }
+    return { success: true };
   } catch (error) {
-    console.error('Error updating coupon:', error)
-    return { success: false, error }
+    console.error('Error updating coupon:', error);
+    return { success: false, error };
   }
 }
 
@@ -339,11 +344,11 @@ export async function getCouponsByCategoryId(categoryId: string): Promise<Coupon
       storeIds: item.store_ids || [],
       discount: item.discount_value,
       discountType: item.discount_type,
-      description: item.description,
+      description: mapRowDescription(item),
       isActive: item.status === 'active',
       maxUses: item.max_uses || 0,
       currentUses: item.current_uses || 0,
-      expiryDate: item.expiry_date,
+      expiryDate: resolveCouponExpiryDate(item.expiry_date),
       logoUrl: item.logo_url,
       url: item.url,
       couponType: item.coupon_type,
@@ -385,11 +390,11 @@ export async function getCouponsByStoreName(storeName: string): Promise<Coupon[]
       storeIds: item.store_ids || [],
       discount: item.discount_value,
       discountType: item.discount_type,
-      description: item.description,
+      description: mapRowDescription(item),
       isActive: item.status === 'active',
       maxUses: item.max_uses || 0,
       currentUses: item.current_uses || 0,
-      expiryDate: item.expiry_date,
+      expiryDate: resolveCouponExpiryDate(item.expiry_date),
       logoUrl: item.logo_url,
       url: item.url,
       couponType: item.coupon_type,
@@ -431,11 +436,11 @@ export async function getCouponsByStoreId(storeId: string): Promise<Coupon[]> {
       storeIds: item.store_ids || [],
       discount: item.discount_value,
       discountType: item.discount_type,
-      description: item.description,
+      description: mapRowDescription(item),
       isActive: item.status === 'active',
       maxUses: item.max_uses || 0,
       currentUses: item.current_uses || 0,
-      expiryDate: item.expiry_date,
+      expiryDate: resolveCouponExpiryDate(item.expiry_date),
       logoUrl: item.logo_url,
       url: item.url,
       couponType: item.coupon_type,
@@ -492,7 +497,7 @@ export async function applyCoupon(code: string) {
       isActive: data.status === 'active',
       maxUses: data.max_uses || 0,
       currentUses: data.current_uses || 0,
-      expiryDate: data.expiry_date,
+      expiryDate: resolveCouponExpiryDate(data.expiry_date),
       logoUrl: data.logo_url,
       url: data.url,
       couponType: data.coupon_type,
@@ -533,14 +538,14 @@ export async function createCouponFromUrl(coupon: Omit<Coupon, 'id'>, logoUrl?: 
 
     const couponData = {
       code: coupon.code,
-      title: coupon.storeName || coupon.code || 'Coupon',  // Add title field (required by database)
+      title: getCouponPersistedTitle(coupon),
       store_name: coupon.storeName,
       store_ids: coupon.storeIds || [],
       discount_value: coupon.discount,
       discount_type: coupon.discountType,
       description: coupon.description,
       status: coupon.isActive ? 'active' : 'inactive',
-      expiry_date: coupon.expiryDate,
+      expiry_date: resolveCouponExpiryDate(coupon.expiryDate),
       logo_url: finalLogoUrl,
       url: coupon.url,
       coupon_type: coupon.couponType,
@@ -621,11 +626,11 @@ export async function getPopularCoupons(): Promise<(Coupon | null)[]> {
             storeIds: item.store_ids || [],
             discount: item.discount_value,
             discountType: item.discount_type,
-            description: item.description,
+            description: mapRowDescription(item),
             isActive: item.status === 'active',
             maxUses: item.max_uses || 0,
             currentUses: item.current_uses || 0,
-            expiryDate: item.expiry_date,
+            expiryDate: resolveCouponExpiryDate(item.expiry_date),
             logoUrl: item.logo_url,
             url: item.url,
             couponType: item.coupon_type,
@@ -690,11 +695,11 @@ export async function getLatestCoupons(): Promise<(Coupon | null)[]> {
       storeIds: item.store_ids || [],
       discount: item.discount_value,
       discountType: item.discount_type,
-      description: item.description,
+      description: mapRowDescription(item),
       isActive: item.status === 'active',
       maxUses: item.max_uses || 0,
       currentUses: item.current_uses || 0,
-      expiryDate: item.expiry_date,
+      expiryDate: resolveCouponExpiryDate(item.expiry_date),
       logoUrl: item.logo_url,
       url: item.url,
       couponType: item.coupon_type,

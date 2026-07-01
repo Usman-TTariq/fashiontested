@@ -1,51 +1,193 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import {
+  CheckCircle,
+  Tag,
+  Shield,
+  Sparkles,
+  Store as StoreIcon,
+  Star,
+  ChevronLeft,
+  ChevronRight,
+  Flame,
+} from 'lucide-react';
 import { getActiveCoupons, Coupon } from '@/lib/services/couponService';
 import { getCategories, Category } from '@/lib/services/categoryService';
 import { getStores, Store } from '@/lib/services/storeService';
-import { addNotification } from '@/lib/services/notificationsService';
 import Navbar from '@/app/components/Navbar';
-import Footer from '@/app/components/Footer';
-import CouponPopup from '@/app/components/CouponPopup';
 import Breadcrumbs from '@/app/components/Breadcrumbs';
-import Link from 'next/link';
+import DealCard from '@/app/components/home/DealCard';
 
-// Helper function to extract domain from URL
+const COUPONS_PER_PAGE = 12;
+const STORES_PER_PAGE = 12;
+
+type TabId = 'coupons' | 'stores';
+
 const extractDomain = (url: string): string | null => {
   if (!url) return null;
   try {
-    const urlObj = new URL(url);
-    return urlObj.hostname.replace('www.', '');
+    return new URL(url).hostname.replace('www.', '');
   } catch {
     return null;
   }
 };
 
-// Get favicon URL with fallback to tracking link (matching homepage implementation)
 const getFaviconUrl = (store: Store): string | null => {
-  // Try website URL first
+  if (store.logoUrl) return store.logoUrl;
   if (store.websiteUrl) {
     const domain = extractDomain(store.websiteUrl);
     if (domain) return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
   }
-
-  // Fallback to tracking link
   if (store.trackingLink) {
     const domain = extractDomain(store.trackingLink);
     if (domain) return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
   }
-
-  // Last resort: Try to construct domain from store name
   if (store.name) {
     const nameLower = store.name.toLowerCase().replace(/\s+/g, '');
     const domain = nameLower.includes('.') ? nameLower : `${nameLower}.com`;
     return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
   }
-
   return null;
 };
+
+function storeHref(store: Store) {
+  return store.slug ? `/stores/${store.slug}` : store.id ? `/stores/${store.id}` : '/stores';
+}
+
+function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+  label,
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  label: string;
+}) {
+  if (totalPages <= 1) return null;
+
+  const go = (page: number) => {
+    onPageChange(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  return (
+    <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-tan pt-8">
+      <p className="text-sm text-brand-muted">
+        Page <span className="font-semibold text-brand-navy">{currentPage}</span> of{' '}
+        <span className="font-semibold text-brand-navy">{totalPages}</span>
+        <span className="hidden sm:inline"> · {label}</span>
+      </p>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => go(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="inline-flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-semibold border border-tan bg-white text-brand-navy disabled:opacity-40 disabled:cursor-not-allowed hover:border-brand-navy/40 transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Prev
+        </button>
+        <div className="flex gap-1">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+            const show =
+              page === 1 ||
+              page === totalPages ||
+              (page >= currentPage - 1 && page <= currentPage + 1);
+            if (!show) {
+              if (page === currentPage - 2 || page === currentPage + 2) {
+                return (
+                  <span key={page} className="px-2 py-2 text-brand-muted text-sm">
+                    …
+                  </span>
+                );
+              }
+              return null;
+            }
+            return (
+              <button
+                key={page}
+                type="button"
+                onClick={() => go(page)}
+                className={`min-w-[2.5rem] px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                  currentPage === page
+                    ? 'bg-brand-navy text-brand-cyan shadow-sm'
+                    : 'bg-white border border-tan text-brand-navy hover:border-brand-navy/40'
+                }`}
+              >
+                {page}
+              </button>
+            );
+          })}
+        </div>
+        <button
+          type="button"
+          onClick={() => go(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="inline-flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-semibold bg-brand-navy text-brand-cyan disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-navy-dark transition-colors"
+        >
+          Next
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function StorePromoCard({
+  store,
+  dealCount,
+}: {
+  store: Store;
+  dealCount: number;
+}) {
+  const logoUrl = getFaviconUrl(store);
+  return (
+    <Link
+      href={storeHref(store)}
+      className="deal-card group flex flex-col h-full p-4 sm:p-5 hover:border-brand-navy/30 transition-all"
+    >
+      <div className="flex items-start justify-between gap-2 mb-3">
+        {store.isTrending && (
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-brand-navy bg-brand-cyan/25 px-2 py-0.5 rounded">
+            <Star className="w-3 h-3 fill-brand-accent text-brand-accent" />
+            Featured
+          </span>
+        )}
+        {!store.isTrending && <span />}
+        <span className="text-[10px] font-bold text-brand-muted bg-cream px-2 py-0.5 rounded">
+          {dealCount} deal{dealCount !== 1 ? 's' : ''}
+        </span>
+      </div>
+      <div className="flex items-center justify-center h-14 mb-3">
+        {logoUrl ? (
+          <img
+            src={logoUrl}
+            alt={store.name}
+            className="max-h-12 max-w-[120px] object-contain group-hover:scale-105 transition-transform"
+          />
+        ) : (
+          <span className="text-2xl font-bold text-brand-navy">{store.name.charAt(0)}</span>
+        )}
+      </div>
+      <h3 className="text-sm font-bold text-brand-navy text-center line-clamp-2 mb-1 group-hover:text-brand-navy-dark">
+        {store.name}
+      </h3>
+      {store.voucherText && (
+        <p className="text-xs text-brand-muted text-center line-clamp-2 mb-3 flex-grow">
+          {store.voucherText}
+        </p>
+      )}
+      <span className="mt-auto block w-full text-center text-xs font-bold text-brand-navy bg-brand-cyan/20 py-2 rounded group-hover:bg-brand-cyan/35 transition-colors">
+        View promotions →
+      </span>
+    </Link>
+  );
+}
 
 function CouponsContent() {
   const searchParams = useSearchParams();
@@ -53,627 +195,465 @@ function CouponsContent() {
   const storeParam = searchParams.get('store');
 
   const [coupons, setCoupons] = useState<Coupon[]>([]);
-  const [supabaseCoupons, setSupabaseCoupons] = useState<Coupon[]>([]);
-  const [filteredCoupons, setFilteredCoupons] = useState<Coupon[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam || '');
-  const [selectedStore, setSelectedStore] = useState<string>(storeParam || '');
-  const [revealedCoupons, setRevealedCoupons] = useState<Set<string>>(new Set());
-  const [showPopup, setShowPopup] = useState(false);
-  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
-  const [supabaseStores, setSupabaseStores] = useState<Store[]>([]);
-  // console.log("coupons: ", coupons);
+  const [selectedCategory, setSelectedCategory] = useState(categoryParam || '');
+  const [selectedStore, setSelectedStore] = useState(storeParam || '');
+  const [activeTab, setActiveTab] = useState<TabId>('coupons');
+  const [couponPage, setCouponPage] = useState(1);
+  const [storePage, setStorePage] = useState(1);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [couponsData, categoriesData, storesData, supabaseResponse] = await Promise.all([
+        const [couponsData, categoriesData, storesData] = await Promise.all([
           getActiveCoupons(),
           getCategories(),
           getStores(),
-          fetch('/api/coupons/supabase')
-            .then((res) => res.json())
-            .catch((err) => {
-              console.error('Error fetching Supabase coupons:', err);
-              return { success: false, coupons: [] };
-            }),
         ]);
-
-        const supabaseList: Coupon[] = Array.isArray(supabaseResponse?.coupons)
-          ? (supabaseResponse.coupons as Coupon[])
-          : [];
-
-        setSupabaseCoupons(supabaseList);
-        setCoupons([...couponsData, ...supabaseList]);
+        setCoupons(couponsData);
         setCategories(categoriesData);
         setStores(storesData);
       } catch (error) {
-        console.error('Error fetching coupons data:', error);
+        console.error('Error fetching promotions data:', error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
-  useEffect(() => {
-    let filtered = [...coupons];
+  const storeDealCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const coupon of coupons) {
+      if (coupon.storeIds?.length) {
+        for (const id of coupon.storeIds) {
+          counts.set(id, (counts.get(id) || 0) + 1);
+        }
+      }
+      if (coupon.storeName) {
+        const match = stores.find((s) => s.name === coupon.storeName);
+        if (match?.id) counts.set(match.id, (counts.get(match.id) || 0) + 1);
+      }
+    }
+    return counts;
+  }, [coupons, stores]);
 
-    // Filter by category
+  const filteredCoupons = useMemo(() => {
+    let list = [...coupons];
     if (selectedCategory) {
-      filtered = filtered.filter(coupon => coupon.categoryId === selectedCategory);
+      list = list.filter((c) => c.categoryId === selectedCategory);
     }
-
-    // Filter by store
     if (selectedStore) {
-      filtered = filtered.filter(coupon => {
-        // Check if coupon is associated with selected store via storeIds
-        if (coupon.storeIds && coupon.storeIds.includes(selectedStore)) {
-          return true;
-        }
-        // Also check by storeName for backward compatibility
-        const store = stores.find(s => s.id === selectedStore);
-        if (store && coupon.storeName === store.name) {
-          return true;
-        }
-        return false;
+      list = list.filter((c) => {
+        if (c.storeIds?.includes(selectedStore)) return true;
+        const store = stores.find((s) => s.id === selectedStore);
+        return store ? c.storeName === store.name : false;
       });
     }
+    return list.sort((a, b) => {
+      if (a.isPopular && !b.isPopular) return -1;
+      if (!a.isPopular && b.isPopular) return 1;
+      return (b.createdAt || '').localeCompare(a.createdAt || '');
+    });
+  }, [coupons, selectedCategory, selectedStore, stores]);
 
-    setFilteredCoupons(filtered);
-  }, [selectedCategory, selectedStore, coupons, stores]);
-
-  const formatDate = (timestamp: any) => {
-    if (!timestamp) return null;
-    try {
-      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-      return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
-    } catch {
-      return null;
+  const filteredStores = useMemo(() => {
+    let list = [...stores];
+    if (selectedStore) {
+      list = list.filter((s) => s.id === selectedStore);
     }
-  };
+    return list.sort((a, b) => {
+      if (a.isTrending && !b.isTrending) return -1;
+      if (!a.isTrending && b.isTrending) return 1;
+      const countDiff = (storeDealCounts.get(b.id || '') || 0) - (storeDealCounts.get(a.id || '') || 0);
+      if (countDiff !== 0) return countDiff;
+      return (a.name || '').localeCompare(b.name || '');
+    });
+  }, [stores, selectedStore, storeDealCounts]);
 
-  // Get last 2 digits of code for code type coupons
-  const getCodePreview = (coupon: Coupon): string => {
-    if ((coupon.couponType || 'deal') === 'code' && coupon.code) {
-      return coupon.getCodeText || 'Get Code';
-    }
-    return coupon.getDealText || 'Get Deal';
-  };
+  const featuredCoupons = useMemo(() => {
+    const popular = filteredCoupons.filter((c) => c.isPopular);
+    if (popular.length >= 4) return popular.slice(0, 6);
+    return filteredCoupons.slice(0, 6);
+  }, [filteredCoupons]);
 
-  // Get last 2 digits for hover display
-  const getLastTwoDigits = (coupon: Coupon): string | null => {
-    if ((coupon.couponType || 'deal') === 'code' && coupon.code) {
-      const code = coupon.code.trim();
-      if (code.length >= 2) {
-        return code.slice(-2);
-      }
-    }
-    return null;
-  };
+  const featuredStores = useMemo(() => {
+    const trending = filteredStores.filter((s) => s.isTrending);
+    const rest = filteredStores.filter((s) => !s.isTrending);
+    return [...trending, ...rest].slice(0, 8);
+  }, [filteredStores]);
 
-  const handleGetDeal = (coupon: Coupon, e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
+  const categoriesWithCounts = useMemo(
+    () =>
+      categories
+        .map((category) => ({
+          ...category,
+          count: coupons.filter((c) => c.categoryId === category.id).length,
+        }))
+        .filter((c) => c.count > 0),
+    [categories, coupons]
+  );
 
-    // Copy code to clipboard FIRST (before showing popup) - only for code type
-    if (coupon.couponType === 'code' && coupon.code) {
-      const codeToCopy = coupon.code.trim();
-      copyToClipboard(codeToCopy);
-    }
+  const couponTotalPages = Math.max(1, Math.ceil(filteredCoupons.length / COUPONS_PER_PAGE));
+  const storeTotalPages = Math.max(1, Math.ceil(filteredStores.length / STORES_PER_PAGE));
 
-    // Mark coupon as revealed
-    if (coupon.id) {
-      setRevealedCoupons(prev => new Set(prev).add(coupon.id!));
-    }
+  const paginatedCoupons = filteredCoupons.slice(
+    (couponPage - 1) * COUPONS_PER_PAGE,
+    couponPage * COUPONS_PER_PAGE
+  );
+  const paginatedStores = filteredStores.slice(
+    (storePage - 1) * STORES_PER_PAGE,
+    storePage * STORES_PER_PAGE
+  );
 
-    // Show popup
-    setSelectedCoupon(coupon);
-    setShowPopup(true);
+  useEffect(() => {
+    setCouponPage(1);
+    setStorePage(1);
+  }, [selectedCategory, selectedStore]);
 
-    // Automatically open URL in new tab after a short delay (to ensure popup is visible first)
-    if (coupon.url && coupon.url.trim()) {
-      setTimeout(() => {
-        window.open(coupon.url, '_blank', 'noopener,noreferrer');
-      }, 500);
-    }
-  };
+  useEffect(() => {
+    if (couponPage > couponTotalPages) setCouponPage(couponTotalPages);
+  }, [couponPage, couponTotalPages]);
 
-  const handlePopupContinue = () => {
-    if (selectedCoupon?.url) {
-      window.open(selectedCoupon.url, '_blank', 'noopener,noreferrer');
-    }
-    setShowPopup(false);
-    setSelectedCoupon(null);
-  };
-
-  const handlePopupClose = () => {
-    setShowPopup(false);
-    setSelectedCoupon(null);
-  };
-
-  const copyToClipboard = (text: string) => {
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(text).then(() => {
-        addNotification({
-          title: 'Code Copied!',
-          message: `Coupon code "${text}" has been copied to clipboard.`,
-          type: 'success'
-        });
-      }).catch((err) => {
-        console.error('Clipboard API failed:', err);
-        copyToClipboardFallback(text);
-      });
-    } else {
-      copyToClipboardFallback(text);
-    }
-  };
-
-  const copyToClipboardFallback = (text: string) => {
-    try {
-      const textArea = document.createElement('textarea');
-      textArea.value = text;
-      textArea.style.position = 'fixed';
-      textArea.style.left = '0';
-      textArea.style.top = '0';
-      textArea.style.width = '2px';
-      textArea.style.height = '2px';
-      textArea.style.opacity = '0';
-      textArea.style.pointerEvents = 'none';
-      textArea.style.zIndex = '-1';
-
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      textArea.setSelectionRange(0, 99999);
-
-      const successful = document.execCommand('copy');
-      document.body.removeChild(textArea);
-
-      if (successful) {
-        addNotification({
-          title: 'Code Copied!',
-          message: `Coupon code "${text}" has been copied to clipboard.`,
-          type: 'success'
-        });
-      } else {
-        addNotification({
-          title: 'Copy Manually',
-          message: `Code: ${text} (Please copy manually)`,
-          type: 'info'
-        });
-      }
-    } catch (err) {
-      console.error('Fallback copy failed:', err);
-      addNotification({
-        title: 'Copy Manually',
-        message: `Code: ${text} (Please copy manually)`,
-        type: 'info'
-      });
-    }
-  };
+  useEffect(() => {
+    if (storePage > storeTotalPages) setStorePage(storeTotalPages);
+  }, [storePage, storeTotalPages]);
 
   const clearFilters = () => {
     setSelectedCategory('');
     setSelectedStore('');
   };
 
+  const hasFilters = Boolean(selectedCategory || selectedStore);
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-cream">
       <Navbar />
+      <Breadcrumbs items={[{ label: 'Promotions' }]} />
 
-      {/* Breadcrumbs */}
-      <Breadcrumbs
-        items={[
-          { label: 'Coupons' }
-        ]}
-      />
-
-      <div className="w-full px-4 sm:px-6 md:px-8 py-8 sm:py-12 md:py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-6 sm:mb-8">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-4">
-              All <span className="text-[#221E1D]">Coupons</span>
-            </h1>
-            <p className="text-center text-gray-600 text-sm sm:text-base">
-              Discover amazing deals and discounts from your favorite stores
-            </p>
+      {/* Hero */}
+      <section className="relative overflow-hidden border-b border-tan bg-gradient-to-br from-white via-cream to-brand-cyan/10">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-brand-cyan/20 blur-3xl" />
+          <div className="absolute -bottom-16 -right-16 w-96 h-96 rounded-full bg-brand-navy/10 blur-3xl" />
+        </div>
+        <div className="home-container relative py-10 sm:py-12 text-center">
+          <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-brand-navy bg-brand-cyan/25 px-4 py-1.5 rounded-full mb-4">
+            <Sparkles className="w-3.5 h-3.5" />
+            Verified &amp; updated daily
+          </p>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-brand-navy mb-3 font-serif">
+            Exclusive <span className="text-brand-accent">Promotions</span>
+          </h1>
+          <p className="text-brand-muted text-sm sm:text-base max-w-2xl mx-auto mb-6">
+            Featured picks, promo codes, and store deals — all in one place.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <div className="flex items-center gap-2 bg-white border border-tan rounded-full px-4 py-2 text-sm font-semibold text-brand-navy shadow-sm">
+              <Tag className="w-4 h-4 text-brand-accent" />
+              {loading ? '…' : `${coupons.length} coupons`}
+            </div>
+            <div className="flex items-center gap-2 bg-white border border-tan rounded-full px-4 py-2 text-sm font-semibold text-brand-navy shadow-sm">
+              <StoreIcon className="w-4 h-4 text-brand-accent" />
+              {loading ? '…' : `${stores.length} stores`}
+            </div>
+            <div className="flex items-center gap-2 bg-white border border-tan rounded-full px-4 py-2 text-sm font-semibold text-brand-navy shadow-sm">
+              <CheckCircle className="w-4 h-4 text-brand-accent" />
+              100% free
+            </div>
           </div>
+        </div>
+      </section>
 
-          {/* 3-Column Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-            {/* LEFT SIDEBAR */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* Categories Filter */}
-              <div className="bg-white rounded-lg border border-gray-200 p-5 shadow-sm">
-                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-[#221E1D]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                  Categories
-                </h3>
-                <div className="space-y-2 max-h-80 overflow-y-auto">
-                  <button
-                    onClick={() => setSelectedCategory('')}
-                    className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${selectedCategory === '' ? 'bg-brand-cyan/10 text-[#221E1D] font-semibold' : 'hover:bg-gray-50 text-gray-700'
-                      }`}
-                  >
-                    All Categories ({coupons.length})
-                  </button>
-                  {categories.map((category) => {
-                    const count = coupons.filter(c => c.categoryId === category.id).length;
-                    return (
-                      <button
-                        key={category.id}
-                        onClick={() => setSelectedCategory(category.id || '')}
-                        className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between ${selectedCategory === category.id ? 'bg-brand-cyan/10 text-[#221E1D] font-semibold' : 'hover:bg-gray-50 text-gray-700'
-                          }`}
-                      >
-                        <span className="truncate">{category.name}</span>
-                        <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full">{count}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Popular Stores */}
-              <div className="bg-white rounded-lg border border-gray-200 p-5 shadow-sm">
-                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-[#221E1D]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                  Popular Stores
-                </h3>
-                <div className="space-y-2 max-h-80 overflow-y-auto">
-                  {stores.slice(0, 10).map((store) => {
-                    const logoUrl = getFaviconUrl(store);
-                    return (
-                      <Link
-                        key={store.id}
-                        href={store.slug ? `/stores/${store.slug}` : `/stores/${store.id}`}
-                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors group"
-                      >
-                        {logoUrl ? (
-                          <img
-                            src={logoUrl}
-                            alt={store.name}
-                            className="w-10 h-10 rounded-lg object-contain bg-gray-50"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                              const parent = target.parentElement;
-                              if (parent) {
-                                parent.innerHTML = `<div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[#221E1D] to-brand-navy-light flex items-center justify-center text-white font-bold">${store.name.charAt(0)}</div>`;
-                              }
-                            }}
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#221E1D] to-brand-navy-light flex items-center justify-center text-white font-bold">
-                            {store.name.charAt(0)}
-                          </div>
-                        )}
-                        <span className="text-sm font-medium text-gray-700 group-hover:text-[#221E1D] truncate">{store.name}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Filter Stats */}
-              {(selectedCategory || selectedStore) && (
-                <div className="bg-brand-cyan/10 rounded-lg border border-brand-cyan/25 p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-brand-navy-darker">Active Filters</span>
-                    <button
-                      onClick={clearFilters}
-                      className="text-xs text-[#221E1D] hover:text-brand-navy-dark font-semibold"
-                    >
-                      Clear All
-                    </button>
-                  </div>
-                  <div className="text-xs text-brand-navy-dark">
-                    Showing {filteredCoupons.length} of {coupons.length} coupons
-                  </div>
-                </div>
-              )}
+      {/* Featured */}
+      {!loading && (featuredCoupons.length > 0 || featuredStores.length > 0) && (
+        <section className="border-b border-tan bg-white">
+          <div className="home-container py-10 sm:py-12">
+            <div className="flex items-center gap-2 mb-6">
+              <Flame className="w-5 h-5 text-brand-accent" />
+              <h2 className="text-xl sm:text-2xl font-bold text-brand-navy font-serif">Featured picks</h2>
             </div>
 
-            {/* MAIN CONTENT */}
-            <div className="lg:col-span-6">
-              {/* Store Filter */}
-              <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6 shadow-sm">
-                <label htmlFor="store" className="block text-sm font-semibold text-gray-700 mb-2">
-                  Filter by Store
-                </label>
-                <select
-                  id="store"
-                  value={selectedStore}
-                  onChange={(e) => setSelectedStore(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#221E1D]"
-                >
-                  <option value="">All Stores</option>
-                  {stores.map((store) => (
-                    <option key={store.id} value={store.id}>
-                      {store.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Coupons List */}
-              {loading ? (
-                <div className="space-y-4">
-                  {[...Array(6)].map((_, i) => (
-                    <div key={i} className="bg-white rounded-lg border border-gray-200 p-4 h-24 animate-pulse">
-                      <div className="flex gap-4">
-                        <div className="h-16 w-16 bg-gray-200 rounded"></div>
-                        <div className="flex-1 space-y-2">
-                          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                        </div>
-                      </div>
-                    </div>
+            {featuredCoupons.length > 0 && (
+              <div className="mb-10">
+                <p className="text-sm font-semibold text-brand-muted uppercase tracking-wide mb-4">
+                  Top coupons
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+                  {featuredCoupons.map((coupon) => (
+                    <DealCard key={`feat-${coupon.id}`} coupon={coupon} tag="FEATURED" />
                   ))}
                 </div>
-              ) : filteredCoupons.length === 0 ? (
-                <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-                  <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className="text-gray-500 text-lg mb-4">No coupons found.</p>
-                  {(selectedCategory || selectedStore) && (
-                    <button
-                      onClick={clearFilters}
-                      className="text-[#221E1D] hover:text-brand-navy-dark font-semibold"
+              </div>
+            )}
+
+            {featuredStores.length > 0 && (
+              <div>
+                <p className="text-sm font-semibold text-brand-muted uppercase tracking-wide mb-4">
+                  Featured stores
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+                  {featuredStores.map((store) => (
+                    <Link
+                      key={store.id}
+                      href={storeHref(store)}
+                      className="deal-card flex flex-col items-center gap-2 p-4 text-center group"
                     >
-                      Clear filters to see all coupons
+                      {getFaviconUrl(store) ? (
+                        <img
+                          src={getFaviconUrl(store)!}
+                          alt={store.name}
+                          className="w-11 h-11 object-contain group-hover:scale-110 transition-transform"
+                        />
+                      ) : (
+                        <div className="w-11 h-11 rounded-lg bg-brand-navy/10 flex items-center justify-center text-brand-navy font-bold">
+                          {store.name.charAt(0)}
+                        </div>
+                      )}
+                      <span className="text-xs font-bold text-brand-navy line-clamp-2 group-hover:text-brand-navy-dark">
+                        {store.name}
+                      </span>
+                      {store.isTrending && (
+                        <span className="text-[10px] font-bold text-brand-accent uppercase">Featured</span>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Main: tabs + filters + paginated grid */}
+      <section className="home-section">
+        <div className="home-container">
+          {/* Tabs */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div className="inline-flex p-1 bg-white border border-tan rounded-xl shadow-sm">
+              <button
+                type="button"
+                onClick={() => setActiveTab('coupons')}
+                className={`px-5 py-2.5 rounded-lg text-sm font-bold transition-colors ${
+                  activeTab === 'coupons'
+                    ? 'bg-brand-navy text-brand-cyan shadow-sm'
+                    : 'text-brand-navy hover:bg-cream'
+                }`}
+              >
+                Coupons ({filteredCoupons.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('stores')}
+                className={`px-5 py-2.5 rounded-lg text-sm font-bold transition-colors ${
+                  activeTab === 'stores'
+                    ? 'bg-brand-navy text-brand-cyan shadow-sm'
+                    : 'text-brand-navy hover:bg-cream'
+                }`}
+              >
+                Stores ({filteredStores.length})
+              </button>
+            </div>
+
+            {hasFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-sm font-semibold text-brand-navy hover:underline"
+              >
+                Clear all filters
+              </button>
+            )}
+          </div>
+
+          {/* Filters */}
+          <div className="mb-8 space-y-4 bg-white border border-tan rounded-2xl p-4 sm:p-5 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <label htmlFor="store-filter" className="text-sm font-bold text-brand-navy shrink-0">
+                Store
+              </label>
+              <select
+                id="store-filter"
+                value={selectedStore}
+                onChange={(e) => setSelectedStore(e.target.value)}
+                className="flex-1 max-w-md px-4 py-2.5 bg-cream border border-tan rounded-lg text-sm text-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-cyan/50"
+              >
+                <option value="">All stores</option>
+                {stores.map((store) => (
+                  <option key={store.id} value={store.id}>
+                    {store.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {categoriesWithCounts.length > 0 && activeTab === 'coupons' && (
+              <div className="flex flex-wrap gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory('')}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                    selectedCategory === ''
+                      ? 'bg-brand-navy text-brand-cyan'
+                      : 'bg-cream border border-tan text-brand-navy'
+                  }`}
+                >
+                  All categories
+                </button>
+                {categoriesWithCounts.map((category) => (
+                  <button
+                    key={category.id}
+                    type="button"
+                    onClick={() => setSelectedCategory(category.id || '')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                      selectedCategory === category.id
+                        ? 'bg-brand-navy text-brand-cyan'
+                        : 'bg-cream border border-tan text-brand-navy'
+                    }`}
+                  >
+                    {category.name} ({category.count})
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {loading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="h-56 bg-white rounded-xl border border-tan animate-pulse" />
+              ))}
+            </div>
+          ) : activeTab === 'coupons' ? (
+            <>
+              {filteredCoupons.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-tan p-12 text-center max-w-lg mx-auto">
+                  <Tag className="w-12 h-12 text-brand-muted mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-bold text-brand-navy mb-2">No coupons found</p>
+                  <p className="text-sm text-brand-muted mb-6">Try adjusting your filters.</p>
+                  {hasFilters && (
+                    <button type="button" onClick={clearFilters} className="btn-cta px-6 py-2.5 text-sm">
+                      View all coupons
                     </button>
                   )}
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {filteredCoupons.map((coupon) => {
-                    const isRevealed = coupon.id && revealedCoupons.has(coupon.id);
-                    const isExpired = coupon.expiryDate && new Date(coupon.expiryDate) < new Date();
-
-                    return (
-                      <div
+                <>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-bold text-brand-navy">
+                      All coupons
+                      <span className="ml-2 text-sm font-normal text-brand-muted">
+                        ({filteredCoupons.length} total)
+                      </span>
+                    </h2>
+                    <span className="text-xs text-brand-muted hidden sm:inline">
+                      Showing {(couponPage - 1) * COUPONS_PER_PAGE + 1}–
+                      {Math.min(couponPage * COUPONS_PER_PAGE, filteredCoupons.length)}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                    {paginatedCoupons.map((coupon) => (
+                      <DealCard
                         key={coupon.id}
-                        className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 hover:border-[#221E1D] flex items-center gap-4"
-                      >
-                        {/* Logo */}
-                        <div className="flex-shrink-0">
-                          {(() => {
-                            // Find the store for this coupon
-                            const store = stores.find(s =>
-                              (coupon.storeIds && s.id && coupon.storeIds.includes(s.id)) ||
-                              s.name === coupon.storeName
-                            );
-                            const logoUrl = store ? getFaviconUrl(store) : coupon.logoUrl;
-                            const fallbackInitial = store?.name?.charAt(0) || coupon.storeName?.charAt(0) || coupon.code?.charAt(0) || '?';
-
-                            return logoUrl ? (
-                              <div className="w-16 h-16 rounded-lg flex items-center justify-center overflow-hidden bg-gray-50">
-                                <img
-                                  src={logoUrl}
-                                  alt={coupon.storeName || coupon.code}
-                                  className="w-full h-full object-contain"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    const parent = target.parentElement;
-                                    if (parent) {
-                                      parent.innerHTML = `<div class="w-16 h-16 rounded-lg bg-gradient-to-br from-[#221E1D] to-brand-navy-light flex items-center justify-center"><span class="text-xl font-bold text-white">${fallbackInitial.toUpperCase()}</span></div>`;
-                                    }
-                                  }}
-                                />
-                              </div>
-                            ) : (
-                              <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-[#221E1D] to-brand-navy-light flex items-center justify-center">
-                                <span className="text-xl font-bold text-white">
-                                  {fallbackInitial.toUpperCase()}
-                                </span>
-                              </div>
-                            );
-                          })()}
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-base font-bold text-gray-900 mb-1 truncate">
-                            {coupon.storeName || coupon.code}
-                          </h3>
-                          <div className="flex items-center gap-3 text-xs text-gray-500">
-                            <div className="flex items-center gap-1 text-brand-navy">
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              <span>Verified</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                              <span>{formatDate(coupon.expiryDate) || '31 Dec, 2025'}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Button */}
-                        <div className="flex-shrink-0">
-                          {isExpired ? (
-                            <div className="bg-red-100 text-red-700 text-xs font-semibold px-4 py-2 rounded">
-                              Expired
-                            </div>
-                          ) : (
-                            <button
-                              onClick={(e) => handleGetDeal(coupon, e)}
-                              className="group relative bg-gradient-to-r from-[#221E1D] to-brand-navy-light border-2 border-dashed border-white/60 rounded-lg px-6 py-3 text-white font-semibold hover:from-brand-navy-dark hover:to-[#221E1D] transition-all duration-300 shadow-md hover:shadow-lg whitespace-nowrap"
-                            >
-                              {isRevealed && coupon.couponType === 'code' && coupon.code ? (
-                                <span className="font-bold">{coupon.code}</span>
-                              ) : (
-                                <>
-                                  <span className="group-hover:hidden">Get Code</span>
-                                  <span className="hidden group-hover:inline font-bold">
-                                    {coupon.couponType === 'code' && coupon.code
-                                      ? `Get Code ${coupon.code.slice(-2)}`
-                                      : 'Get Code'}
-                                  </span>
-                                </>
-                              )}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                        coupon={coupon}
+                        tag={
+                          coupon.isPopular
+                            ? 'TRENDING'
+                            : coupon.couponType === 'code'
+                              ? 'PROMO CODE'
+                              : 'DEAL'
+                        }
+                      />
+                    ))}
+                  </div>
+                  <Pagination
+                    currentPage={couponPage}
+                    totalPages={couponTotalPages}
+                    onPageChange={setCouponPage}
+                    label={`${filteredCoupons.length} coupons`}
+                  />
+                </>
               )}
-            </div>
-
-            {/* RIGHT SIDEBAR */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* Trending Deals */}
-              <div className="bg-gradient-to-br from-brand-cyan/10 to-brand-cyan/15 rounded-lg border border-brand-cyan/25 p-5 shadow-sm">
-                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-[#221E1D]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                  </svg>
-                  Trending Deals
-                </h3>
-                <div className="space-y-3">
-                  {filteredCoupons.slice(0, 5).map((coupon) => (
-                    <div key={coupon.id} className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex items-center gap-2 mb-2">
-                        {coupon.logoUrl && (
-                          <img src={coupon.logoUrl} alt="" className="w-8 h-8 rounded object-contain" />
-                        )}
-                        <span className="text-sm font-semibold text-gray-900 truncate">{coupon.storeName}</span>
-                      </div>
-                      <div className="text-xs text-gray-600 mb-2 line-clamp-2">{coupon.description}</div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[#221E1D]">{coupon.discount}% OFF</span>
-                        <button
-                          onClick={(e) => handleGetDeal(coupon, e)}
-                          className="text-xs bg-[#221E1D] text-white px-3 py-1 rounded hover:bg-brand-navy-dark transition-colors"
-                        >
-                          Get Deal
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+            </>
+          ) : (
+            <>
+              {filteredStores.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-tan p-12 text-center max-w-lg mx-auto">
+                  <StoreIcon className="w-12 h-12 text-brand-muted mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-bold text-brand-navy mb-2">No stores found</p>
+                  {hasFilters && (
+                    <button type="button" onClick={clearFilters} className="btn-cta px-6 py-2.5 text-sm mt-4">
+                      View all stores
+                    </button>
+                  )}
                 </div>
-              </div>
-
-              {/* Related Stores */}
-              <div className="bg-white rounded-lg border border-gray-200 p-5 shadow-sm">
-                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-[#221E1D]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  You May Also Like
-                </h3>
-                <div className="space-y-3">
-                  {stores.slice(0, 6).map((store) => {
-                    const logoUrl = getFaviconUrl(store);
-                    return (
-                      <Link
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-bold text-brand-navy">
+                      All stores
+                      <span className="ml-2 text-sm font-normal text-brand-muted">
+                        ({filteredStores.length} total)
+                      </span>
+                    </h2>
+                    <span className="text-xs text-brand-muted hidden sm:inline">
+                      Showing {(storePage - 1) * STORES_PER_PAGE + 1}–
+                      {Math.min(storePage * STORES_PER_PAGE, filteredStores.length)}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                    {paginatedStores.map((store) => (
+                      <StorePromoCard
                         key={store.id}
-                        href={store.slug ? `/stores/${store.slug}` : `/stores/${store.id}`}
-                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors group"
-                      >
-                        {logoUrl ? (
-                          <img
-                            src={logoUrl}
-                            alt={store.name}
-                            className="w-12 h-12 rounded-lg object-contain bg-gray-50"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                              const parent = target.parentElement;
-                              if (parent) {
-                                parent.innerHTML = `<div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold">${store.name.charAt(0)}</div>`;
-                              }
-                            }}
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold">
-                            {store.name.charAt(0)}
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-semibold text-gray-900 group-hover:text-[#221E1D] truncate">{store.name}</div>
-                          <div className="text-xs text-gray-500">View Coupons →</div>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
+                        store={store}
+                        dealCount={storeDealCounts.get(store.id || '') || 0}
+                      />
+                    ))}
+                  </div>
+                  <Pagination
+                    currentPage={storePage}
+                    totalPages={storeTotalPages}
+                    onPageChange={setStorePage}
+                    label={`${filteredStores.length} stores`}
+                  />
+                </>
+              )}
+            </>
+          )}
 
-              {/* Quick Stats */}
-              <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg border border-blue-200 p-5 shadow-sm">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Stats</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Total Coupons</span>
-                    <span className="text-lg font-bold text-blue-600">{coupons.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Active Stores</span>
-                    <span className="text-lg font-bold text-purple-600">{stores.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Categories</span>
-                    <span className="text-lg font-bold text-pink-600">{categories.length}</span>
-                  </div>
-                </div>
-              </div>
+          {!loading && (
+            <div className="mt-12 text-center">
+              <Link href="/stores" className="btn-outline text-sm inline-flex items-center gap-2">
+                <Shield className="w-4 h-4" />
+                Browse full store directory
+              </Link>
             </div>
-          </div>
+          )}
         </div>
-      </div>
-
-
-      {/* Footer */}
-      <Footer />
-
-      {/* Coupon Popup */}
-      <CouponPopup
-        coupon={selectedCoupon}
-        isOpen={showPopup}
-        onClose={handlePopupClose}
-        onContinue={handlePopupContinue}
-      />
+      </section>
     </div>
   );
 }
 
 export default function CouponsPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-white">
-        <Navbar />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#221E1D] mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading coupons...</p>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-cream">
+          <Navbar />
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-navy mx-auto mb-4" />
+              <p className="text-brand-muted">Loading promotions…</p>
+            </div>
           </div>
         </div>
-        <Footer />
-      </div>
-    }>
+      }
+    >
       <CouponsContent />
     </Suspense>
   );
 }
-

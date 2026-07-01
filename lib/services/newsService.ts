@@ -1,4 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
+import { parseArticleExcerpt, buildArticleExcerpt } from '@/lib/utils/articleMeta'
+import { resolveArticleImageUrl } from '@/lib/utils/articleImages'
 
 export interface NewsArticle {
   id?: string
@@ -11,9 +13,43 @@ export interface NewsArticle {
   layoutPosition?: number | null
   createdAt?: string
   updatedAt?: string
+  category?: string
+  author?: string
+  popularity?: number
+  slug?: string
 }
 
 const supabase = createClient()
+
+function mapArticleRow(item: Record<string, unknown>): NewsArticle {
+  const meta = parseArticleExcerpt(item.excerpt as string)
+  const createdAt = item.created_at as string | undefined
+
+  return {
+    id: item.id != null ? String(item.id) : undefined,
+    title: String(item.title || ''),
+    description: meta.description,
+    content: (item.content as string) || '',
+    imageUrl: resolveArticleImageUrl(item.featured_image_url as string, meta.category),
+    articleUrl: '',
+    date: createdAt
+      ? new Date(createdAt).toLocaleDateString('en-US', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        })
+      : undefined,
+    layoutPosition: null,
+    createdAt,
+    updatedAt: item.updated_at as string | undefined,
+    category: meta.category,
+    author: meta.author,
+    popularity: meta.popularity,
+    slug: (item.slug as string) || undefined,
+  }
+}
+
+export { buildArticleExcerpt }
 
 export async function createNewsFromUrl(
   title: string,
@@ -65,22 +101,7 @@ export async function getNews(): Promise<NewsArticle[]> {
       return []
     }
 
-    return (data || []).map((item: any) => ({
-      id: item.id,
-      title: item.title,
-      description: item.excerpt || '',
-      content: item.content || '',
-      imageUrl: item.featured_image_url || '',
-      articleUrl: '',
-      date: new Date(item.created_at).toLocaleDateString('en-US', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      }),
-      layoutPosition: null,
-      createdAt: item.created_at,
-      updatedAt: item.updated_at,
-    }))
+    return (data || []).map((item: any) => mapArticleRow(item))
   } catch (error) {
     console.error('Error getting news:', error)
     return []
@@ -101,22 +122,7 @@ export async function getNewsById(id: string): Promise<NewsArticle | null> {
       return null
     }
 
-    return {
-      id: data.id,
-      title: data.title,
-      description: data.excerpt || '',
-      content: data.content || '',
-      imageUrl: data.featured_image_url || '',
-      articleUrl: '',
-      date: new Date(data.created_at).toLocaleDateString('en-US', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      }),
-      layoutPosition: null,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-    }
+    return mapArticleRow(data as Record<string, unknown>)
   } catch (error) {
     console.error('Error getting news:', error)
     return null
@@ -141,20 +147,8 @@ export async function getNewsWithLayout(): Promise<(NewsArticle | null)[]> {
     ;(data || []).forEach((item: any, index: number) => {
       if (index < 4) {
         layoutSlots[index] = {
-          id: item.id,
-          title: item.title,
-          description: item.excerpt || '',
-          content: item.content || '',
-          imageUrl: item.featured_image_url || '',
-          articleUrl: '',
-          date: new Date(item.created_at).toLocaleDateString('en-US', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-          }),
+          ...mapArticleRow(item),
           layoutPosition: index + 1,
-          createdAt: item.created_at,
-          updatedAt: item.updated_at,
         }
       }
     })
@@ -173,7 +167,18 @@ export async function updateNews(id: string, updates: Partial<NewsArticle>) {
     }
 
     if (updates.title) updateData.title = updates.title
-    if (updates.description) updateData.excerpt = updates.description
+    if (updates.description) {
+      const existing = await getNewsById(id)
+      const meta = existing
+        ? { category: existing.category, author: existing.author, popularity: existing.popularity }
+        : { category: 'LIFESTYLE', author: 'Editorial Team', popularity: 0 }
+      updateData.excerpt = buildArticleExcerpt(
+        meta.category || 'LIFESTYLE',
+        meta.author || 'Editorial Team',
+        updates.description,
+        meta.popularity || 0
+      )
+    }
     if (updates.content) updateData.content = updates.content
     if (updates.imageUrl) updateData.featured_image_url = updates.imageUrl
 

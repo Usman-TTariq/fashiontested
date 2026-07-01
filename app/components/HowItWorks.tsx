@@ -64,7 +64,7 @@ export default function HowItWorks() {
                 className="bg-white border border-[var(--border-subtle)] rounded-2xl p-6 text-center shadow-sm"
               >
                 <p className="text-2xl md:text-3xl font-extrabold text-brand-navy">{stat.value}</p>
-                <p className="text-sm font-semibold text-brand-cyan mt-1">{stat.label}</p>
+                <p className="text-sm font-semibold text-brand-accent mt-1">{stat.label}</p>
               </div>
             ))}
           </div>
