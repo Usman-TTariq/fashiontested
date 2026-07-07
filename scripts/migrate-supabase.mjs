@@ -93,7 +93,8 @@ async function upsertBatch(supabase, table, rows) {
 }
 
 async function checkConnection(supabase, label) {
-  const { error } = await supabase.from('categories').select('id', { count: 'exact', head: true })
+  // head:true returns 204 even when the table is missing — use a real select
+  const { error } = await supabase.from('categories').select('id').limit(1)
   if (error?.code === 'PGRST205' || error?.code === '42P01' || error?.message?.includes('schema cache')) {
     return { ok: false, missingSchema: true, message: error.message }
   }
