@@ -51,7 +51,7 @@ export default function TrustedPartners() {
       <div className="w-full px-2 sm:px-4 md:px-6 py-16 section-dark relative overflow-hidden">
         {/* Decorative Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-[#C7395F]/10 to-[#d45678]/5 rounded-full blur-3xl"></div>
+          <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-brand-red/10 to-brand-red/5 rounded-full blur-3xl"></div>
           <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-br from-brand-cyan/10 to-brand-cyan/5 rounded-full blur-3xl"></div>
         </div>
 
@@ -78,7 +78,7 @@ export default function TrustedPartners() {
     <div className="w-full px-2 sm:px-4 md:px-6 py-16 section-dark relative overflow-hidden">
       {/* Decorative Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-[#C7395F]/10 to-[#d45678]/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-brand-red/10 to-brand-red/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-br from-brand-cyan/10 to-brand-cyan/5 rounded-full blur-3xl"></div>
       </div>
 
@@ -142,7 +142,7 @@ export default function TrustedPartners() {
                                     target.style.display = 'none';
                                     const parent = target.parentElement;
                                     if (parent) {
-                                      parent.innerHTML = `<div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#C7395F] to-[#d45678] flex items-center justify-center text-white font-bold">${fallbackInitial.toUpperCase()}</div>`;
+                                      parent.innerHTML = `<div class="w-12 h-12 rounded-full bg-gradient-to-br from-brand-red to-brand-red flex items-center justify-center text-white font-bold">${fallbackInitial.toUpperCase()}</div>`;
                                     }
                                   }
                                 }}
@@ -157,12 +157,12 @@ export default function TrustedPartners() {
                                   target.style.display = 'none';
                                   const parent = target.parentElement;
                                   if (parent) {
-                                    parent.innerHTML = `<div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#C7395F] to-[#d45678] flex items-center justify-center text-white font-bold">${fallbackInitial.toUpperCase()}</div>`;
+                                    parent.innerHTML = `<div class="w-12 h-12 rounded-full bg-gradient-to-br from-brand-red to-brand-red flex items-center justify-center text-white font-bold">${fallbackInitial.toUpperCase()}</div>`;
                                   }
                                 }}
                               />
                             ) : (
-                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#C7395F] to-[#d45678] flex items-center justify-center text-white font-bold">
+                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-red to-brand-red flex items-center justify-center text-white font-bold">
                                 {fallbackInitial.toUpperCase()}
                               </div>
                             )}
@@ -222,7 +222,7 @@ export default function TrustedPartners() {
                                     target.style.display = 'none';
                                     const parent = target.parentElement;
                                     if (parent) {
-                                      parent.innerHTML = `<div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#C7395F] to-[#d45678] flex items-center justify-center text-white font-bold">${fallbackInitial.toUpperCase()}</div>`;
+                                      parent.innerHTML = `<div class="w-12 h-12 rounded-full bg-gradient-to-br from-brand-red to-brand-red flex items-center justify-center text-white font-bold">${fallbackInitial.toUpperCase()}</div>`;
                                     }
                                   }
                                 }}
@@ -237,12 +237,12 @@ export default function TrustedPartners() {
                                   target.style.display = 'none';
                                   const parent = target.parentElement;
                                   if (parent) {
-                                    parent.innerHTML = `<div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#C7395F] to-[#d45678] flex items-center justify-center text-white font-bold">${fallbackInitial.toUpperCase()}</div>`;
+                                    parent.innerHTML = `<div class="w-12 h-12 rounded-full bg-gradient-to-br from-brand-red to-brand-red flex items-center justify-center text-white font-bold">${fallbackInitial.toUpperCase()}</div>`;
                                   }
                                 }}
                               />
                             ) : (
-                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#C7395F] to-[#d45678] flex items-center justify-center text-white font-bold">
+                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-red to-brand-red flex items-center justify-center text-white font-bold">
                                 {fallbackInitial.toUpperCase()}
                               </div>
                             )}

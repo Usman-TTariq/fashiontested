@@ -8,13 +8,13 @@ export default function PrivacyPolicyPage() {
   const sections = [
     {
       id: "introduction",
-      icon: <Globe className="w-6 h-6 text-[#C7395F]" />,
+      icon: <Globe className="w-6 h-6 text-brand-red" />,
       title: "1. Introduction",
-      content: "Welcome to Favento (\"we,\" \"our,\" or \"us\"). We are committed to protecting your privacy and ensuring you have a positive experience on our website. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website favento.com."
+      content: "Welcome to FashionTested (\"we,\" \"our,\" or \"us\"). We are committed to protecting your privacy and ensuring you have a positive experience on our website. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website fashiontested.com."
     },
     {
       id: "collection",
-      icon: <Users className="w-6 h-6 text-[#C7395F]" />,
+      icon: <Users className="w-6 h-6 text-brand-red" />,
       title: "2. Information We Collect",
       content: (
         <div className="space-y-4">
@@ -31,51 +31,51 @@ export default function PrivacyPolicyPage() {
     },
     {
       id: "usage",
-      icon: <Eye className="w-6 h-6 text-[#C7395F]" />,
+      icon: <Eye className="w-6 h-6 text-brand-red" />,
       title: "3. How We Use Your Information",
       content: "We use the information we collect to provide and maintain our services, personalize your experience, send you relevant updates (with your consent), and analyze website usage to improve our platform."
     },
     {
       id: "tracking",
-      icon: <RefreshCw className="w-6 h-6 text-[#C7395F]" />,
+      icon: <RefreshCw className="w-6 h-6 text-brand-red" />,
       title: "4. Cookies and Tracking",
       content: "We use cookies and similar technologies to track activity on our platform and store certain information. You can manage your cookie preferences through your browser settings at any time."
     },
     {
       id: "sharing",
-      icon: <Share2 className="w-6 h-6 text-[#C7395F]" />,
+      icon: <Share2 className="w-6 h-6 text-brand-red" />,
       title: "5. Information Sharing",
       content: "We do not sell or rent your personal information to third parties. We may share data with trusted service providers who assist us in operating our website, provided they agree to keep this information confidential."
     },
     {
       id: "security",
-      icon: <Lock className="w-6 h-6 text-[#C7395F]" />,
+      icon: <Lock className="w-6 h-6 text-brand-red" />,
       title: "6. Data Security",
       content: "We implement robust technical security measures to protect your data. However, remember that no method of transmission over the internet is 100% secure, and we cannot guarantee absolute security."
     },
     {
       id: "rights",
-      icon: <Shield className="w-6 h-6 text-[#C7395F]" />,
+      icon: <Shield className="w-6 h-6 text-brand-red" />,
       title: "7. Your Rights",
       content: "Depending on your location, you may have rights to access, correct, or delete your personal data. You can always opt-out of marketing communications by following the unsubscribe link in our emails."
     },
     {
       id: "third-party",
-      icon: <Smartphone className="w-6 h-6 text-[#C7395F]" />,
+      icon: <Smartphone className="w-6 h-6 text-brand-red" />,
       title: "8. Third-Party Links",
       content: "Our platform contains links to partner retailers. We are not responsible for their privacy practices, and we encourage you to read the privacy policies of any third-party site you visit."
     },
     {
       id: "updates",
-      icon: <AlertCircle className="w-6 h-6 text-[#C7395F]" />,
+      icon: <AlertCircle className="w-6 h-6 text-brand-red" />,
       title: "9. Policy Updates",
       content: "We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the \"Last updated\" date at the top."
     },
     {
       id: "contact",
-      icon: <Mail className="w-6 h-6 text-[#C7395F]" />,
+      icon: <Mail className="w-6 h-6 text-brand-red" />,
       title: "10. Contact Us",
-      content: "If you have any questions about this Privacy Policy, please contact us at privacy@favento.com."
+      content: "If you have any questions about this Privacy Policy, please contact us at privacy@fashiontested.com."
     }
   ];
 
@@ -90,15 +90,15 @@ export default function PrivacyPolicyPage() {
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-brand-cyan/20 rounded-full -ml-24 -mb-24 blur-3xl"></div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-cyan/15 text-[#C7395F] text-sm font-semibold mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-cyan/15 text-brand-red text-sm font-semibold mb-6">
             <Lock className="w-4 h-4" />
             <span>Secure & Private</span>
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
-            Privacy <span className="text-[#C7395F]">Policy</span>
+            Privacy <span className="text-brand-red">Policy</span>
           </h1>
           <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Your privacy is our priority. Learn how we handle your data with transparency and care at Favento.
+            Your privacy is our priority. Learn how we handle your data with transparency and care at FashionTested.
           </p>
           <div className="mt-8 text-sm font-medium text-gray-400">
             Last Updated: Jan 2025
@@ -139,7 +139,7 @@ export default function PrivacyPolicyPage() {
           </div>
 
           {/* Quick Summary Card */}
-          <div className="mt-8 bg-[#C7395F] rounded-3xl p-8 sm:p-12 text-white shadow-2xl relative overflow-hidden">
+          <div className="mt-8 bg-brand-red rounded-3xl p-8 sm:p-12 text-white shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
               <div className="max-w-md">

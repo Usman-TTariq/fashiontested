@@ -195,7 +195,7 @@ export default function CategoryPageClient({ params }: { params: { id: string } 
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-800 mb-2">Category Not Found</h1>
-            <Link href="/categories" className="text-[#C7395F] hover:underline">
+            <Link href="/categories" className="text-brand-red hover:underline">
               Back to Categories
             </Link>
           </div>
@@ -286,7 +286,7 @@ export default function CategoryPageClient({ params }: { params: { id: string } 
                         </span>
                       </div>
                     )}
-                    <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-gray-800 mb-1 sm:mb-2 group-hover:text-[#C7395F] transition-colors line-clamp-2">
+                    <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-semibold text-gray-800 mb-1 sm:mb-2 group-hover:text-brand-red transition-colors line-clamp-2">
                       {store.name}
                     </h3>
                     {store.voucherText && (
@@ -345,7 +345,7 @@ export default function CategoryPageClient({ params }: { params: { id: string } 
                       {!isExpired && (
                         <button
                           onClick={(e) => handleGetDeal(coupon, e)}
-                          className="w-full bg-gradient-to-r from-[#C7395F] to-brand-navy-light border-2 border-dashed border-white/60 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 flex items-center justify-between text-white font-semibold hover:from-brand-navy-dark hover:to-[#C7395F] hover:border-white/80 transition-all duration-300 group relative overflow-hidden shadow-md hover:shadow-lg text-xs sm:text-sm md:text-base"
+                          className="w-full bg-gradient-to-r from-brand-red to-brand-navy-light border-2 border-dashed border-white/60 rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 flex items-center justify-between text-white font-semibold hover:from-brand-navy-dark hover:to-brand-red hover:border-white/80 transition-all duration-300 group relative overflow-hidden shadow-md hover:shadow-lg text-xs sm:text-sm md:text-base"
                           style={{ borderStyle: 'dashed', borderWidth: '2px' }}
                         >
                           <span className="flex-1 flex items-center justify-center">
@@ -387,7 +387,7 @@ export default function CategoryPageClient({ params }: { params: { id: string } 
         {stores.length === 0 && coupons.length === 0 && (
           <div className="text-center py-6 sm:py-8 md:py-12">
             <p className="text-gray-600 text-sm sm:text-base md:text-lg">No stores or coupons found for this category.</p>
-            <Link href="/categories" className="text-[#C7395F] hover:underline mt-2 sm:mt-4 inline-block text-sm sm:text-base">
+            <Link href="/categories" className="text-brand-red hover:underline mt-2 sm:mt-4 inline-block text-sm sm:text-base">
               Browse All Categories
             </Link>
           </div>

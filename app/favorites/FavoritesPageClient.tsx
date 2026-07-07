@@ -46,7 +46,7 @@ export default function FavoritesPage() {
         <div className="max-w-7xl mx-auto w-full">
           <div className="mb-6 sm:mb-8">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-2">
-              My <span className="text-[#C7395F]">Favorites</span>
+              My <span className="text-brand-red">Favorites</span>
             </h1>
             <p className="text-gray-600 text-sm sm:text-base">
               {favorites.length} {favorites.length === 1 ? 'coupon' : 'coupons'} saved
@@ -66,7 +66,7 @@ export default function FavoritesPage() {
               <p className="text-gray-400 text-sm mb-6">Start adding coupons to your favorites!</p>
               <Link
                 href="/"
-                className="inline-block px-6 py-3 bg-gradient-to-r from-[#C7395F] to-brand-navy-light text-white font-semibold rounded-lg hover:from-brand-navy-dark hover:to-[#C7395F] transition-all"
+                className="inline-block px-6 py-3 bg-gradient-to-r from-brand-red to-brand-navy-light text-white font-semibold rounded-lg hover:from-brand-navy-dark hover:to-brand-red transition-all"
               >
                 Browse Coupons
               </Link>
@@ -76,7 +76,7 @@ export default function FavoritesPage() {
               {favorites.map((coupon) => (
                 <div
                   key={coupon.couponId}
-                  className="group bg-white border border-gray-200 rounded-lg p-4 sm:p-6 hover:border-[#C7395F] hover:shadow-lg transition-all duration-300 relative"
+                  className="group bg-white border border-gray-200 rounded-lg p-4 sm:p-6 hover:border-brand-red hover:shadow-lg transition-all duration-300 relative"
                 >
                   <button
                     onClick={() => handleRemove(coupon.couponId)}
@@ -103,7 +103,7 @@ export default function FavoritesPage() {
                   )}
 
                   <div className="text-center">
-                    <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-[#C7395F] transition-colors line-clamp-2">
+                    <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-brand-red transition-colors line-clamp-2">
                       {getCouponDisplayTitle(coupon)}
                     </h3>
                     {coupon.storeName && (

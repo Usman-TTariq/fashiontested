@@ -1,6 +1,6 @@
-# Favento
+# FashionTested
 
-Favento — a Next.js coupon and deals site with Supabase backend.
+FashionTested — a Next.js coupon and deals site with Supabase backend.
 
 ## Stack
 

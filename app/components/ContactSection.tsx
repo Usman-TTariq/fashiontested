@@ -183,7 +183,7 @@ export default function ContactSection() {
                                 <motion.div
                                     initial={{ opacity: 0, y: -10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className={`p-4 rounded-2xl border flex items-center gap-3 ${submitStatus.type === 'success' ? 'bg-brand-cyan/10 border-brand-cyan/20 text-[#C7395F]' : 'bg-red-50 border-red-100 text-red-600'
+                                    className={`p-4 rounded-2xl border flex items-center gap-3 ${submitStatus.type === 'success' ? 'bg-brand-cyan/10 border-brand-cyan/20 text-brand-red' : 'bg-red-50 border-red-100 text-red-600'
                                         }`}
                                 >
                                     {submitStatus.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}

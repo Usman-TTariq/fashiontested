@@ -77,7 +77,7 @@ export default function Breadcrumbs({ items, className = '' }: BreadcrumbsProps)
                     <li className="flex items-center group">
                         <Link
                             href="/"
-                            className="flex items-center gap-1.5 text-gray-600 hover:text-[#C7395F] transition-all duration-300 hover:scale-105"
+                            className="flex items-center gap-1.5 text-gray-600 hover:text-brand-red transition-all duration-300 hover:scale-105"
                         >
                             <Home className="w-4 h-4" />
                             <span className="font-medium">Home</span>
@@ -96,7 +96,7 @@ export default function Breadcrumbs({ items, className = '' }: BreadcrumbsProps)
                                 {/* Breadcrumb Item */}
                                 {isLast || !item.href ? (
                                     <span
-                                        className="text-[#C7395F] font-semibold px-3 py-1.5 bg-gradient-to-r from-brand-cyan/10 to-brand-cyan/15 rounded-lg border border-[#C7395F]/20"
+                                        className="text-brand-red font-semibold px-3 py-1.5 bg-gradient-to-r from-brand-cyan/10 to-brand-cyan/15 rounded-lg border border-brand-red/20"
                                         aria-current="page"
                                     >
                                         {item.label}
@@ -104,7 +104,7 @@ export default function Breadcrumbs({ items, className = '' }: BreadcrumbsProps)
                                 ) : (
                                     <Link
                                         href={item.href}
-                                        className="text-gray-600 hover:text-[#C7395F] transition-all duration-300 font-medium hover:underline hover:underline-offset-4 px-2 py-1 rounded hover:bg-brand-red/10"
+                                        className="text-gray-600 hover:text-brand-red transition-all duration-300 font-medium hover:underline hover:underline-offset-4 px-2 py-1 rounded hover:bg-brand-red/10"
                                     >
                                         {item.label}
                                     </Link>

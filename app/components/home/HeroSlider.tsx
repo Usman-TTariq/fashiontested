@@ -36,7 +36,7 @@ function SlideVisual({ slide, priority }: { slide: HeroSlide; priority?: boolean
       <div className={`absolute h-40 w-40 rounded-full ${accent.glow} opacity-60 blur-2xl`} aria-hidden />
 
       {/* Center showcase */}
-      <div className="relative z-10 flex h-44 w-44 items-center justify-center rounded-3xl border border-[#c9bdd6] bg-white p-6 shadow-2xl shadow-[#C7395F]/10 sm:h-52 sm:w-52 hero-float-card">
+      <div className="relative z-10 flex h-44 w-44 items-center justify-center rounded-3xl border border-tan bg-white p-6 shadow-2xl shadow-brand-red//10 sm:h-52 sm:w-52 hero-float-card">
         <img
           src={slide.imageUrl}
           alt={slide.imageAlt}
@@ -51,16 +51,16 @@ function SlideVisual({ slide, priority }: { slide: HeroSlide; priority?: boolean
 
       {/* Floating badge */}
       {slide.badge && (
-        <div className="absolute -right-1 top-6 z-20 rotate-6 rounded-xl bg-[#C7395F] px-3 py-2 text-xs font-black uppercase tracking-wide text-white shadow-lg shadow-[#C7395F]/40 hero-float-badge">
+        <div className="absolute -right-1 top-6 z-20 rotate-6 rounded-xl bg-brand-red px-3 py-2 text-xs font-black uppercase tracking-wide text-white shadow-lg shadow-brand-red//40 hero-float-badge">
           {slide.badge}
         </div>
       )}
 
       {/* Orbit chips */}
-      <div className="absolute left-0 top-1/2 z-20 -translate-y-1/2 rounded-full border border-[#c9bdd6] bg-[#DED4E8] px-2.5 py-1 text-[10px] font-bold text-[#d45678] shadow-sm hero-orbit-chip-1">
+      <div className="absolute left-0 top-1/2 z-20 -translate-y-1/2 rounded-full border border-tan bg-white px-2.5 py-1 text-[10px] font-bold text-brand-red shadow-sm hero-orbit-chip-1">
         Verified
       </div>
-      <div className="absolute bottom-4 right-0 z-20 rounded-full border border-[#c9bdd6] bg-white px-2.5 py-1 text-[10px] font-bold text-[#C7395F] shadow-sm hero-orbit-chip-2">
+      <div className="absolute bottom-4 right-0 z-20 rounded-full border border-tan bg-white px-2.5 py-1 text-[10px] font-bold text-brand-red shadow-sm hero-orbit-chip-2">
         Daily updates
       </div>
     </div>
@@ -87,9 +87,9 @@ function SlideContent({
           {slide.eyebrow}
         </span>
 
-        <Heading className="mb-4 text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold leading-[1.08] tracking-tight text-[#C7395F]">
+        <Heading className="mb-4 text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold leading-[1.08] tracking-tight text-brand-red">
           {slide.headline}{' '}
-          <span className="bg-gradient-to-r from-[#C7395F] to-[#C7395F] bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-brand-red to-brand-red bg-clip-text text-transparent">
             {slide.highlight}
           </span>
         </Heading>
@@ -105,21 +105,21 @@ function SlideContent({
           </Link>
           <Link
             href="/stores"
-            className="inline-flex items-center gap-1.5 text-sm font-bold text-[#d45678] underline-offset-4 hover:text-[#C7395F] hover:underline"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-brand-red underline-offset-4 hover:text-brand-red hover:underline"
           >
             Browse stores
           </Link>
         </div>
 
         {/* Trust row */}
-        <div className="mt-8 flex flex-wrap gap-4 border-t border-[#c9bdd6] pt-6">
+        <div className="mt-8 flex flex-wrap gap-4 border-t border-tan pt-6">
           {[
             { icon: ShieldCheck, text: 'Verified codes' },
             { icon: Zap, text: 'Updated daily' },
             { icon: Store, text: '500+ stores' },
           ].map(({ icon: Icon, text }) => (
-            <span key={text} className="flex items-center gap-1.5 text-xs font-semibold text-[#d45678]">
-              <Icon className="h-3.5 w-3.5 text-[#C7395F]" />
+            <span key={text} className="flex items-center gap-1.5 text-xs font-semibold text-brand-red">
+              <Icon className="h-3.5 w-3.5 text-brand-red" />
               {text}
             </span>
           ))}
@@ -145,23 +145,23 @@ export default function HeroSlider({ initialBanners }: HeroSliderProps) {
   const progress = ((activeIndex + 1) / slides.length) * 100;
 
   return (
-    <section className="hero-spotlight relative overflow-hidden border-b border-[#c9bdd6] bg-[#DED4E8] py-6 sm:py-10">
+    <section className="hero-spotlight relative overflow-hidden border-b border-tan bg-white py-6 sm:py-10">
       {/* Ambient blobs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        <div className="hero-blob hero-blob-1 absolute -left-24 top-0 h-72 w-72 rounded-full bg-[#C7395F]/[0.07] blur-3xl" />
-        <div className="hero-blob hero-blob-2 absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-[#C7395F]/[0.06] blur-3xl" />
+        <div className="hero-blob hero-blob-1 absolute -left-24 top-0 h-72 w-72 rounded-full bg-brand-red/[0.07] blur-3xl" />
+        <div className="hero-blob hero-blob-2 absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-brand-red/[0.06] blur-3xl" />
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHNhdHRlcm4gaWQ9ImEiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9IiNFNUQ3QjkiIG9wYWNpdHk9IjAuNSIvPjwvcGF0dGVybj48L3N0YXN1cmU+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNhKSIvPjwvc3ZnPg==')] opacity-40" />
       </div>
 
       <div className="home-container relative">
         {/* Main spotlight card */}
-        <div className="relative overflow-hidden rounded-3xl border border-[#c9bdd6] bg-white/80 shadow-xl shadow-[#C7395F]/[0.06] backdrop-blur-sm">
+        <div className="relative overflow-hidden rounded-3xl border border-tan bg-white/80 shadow-xl shadow-brand-red//[0.06] backdrop-blur-sm">
           {/* Top bar */}
-          <div className="flex items-center justify-between border-b border-[#c9bdd6]/80 px-5 py-3 sm:px-8">
+          <div className="flex items-center justify-between border-b border-tan/80 px-5 py-3 sm:px-8">
             <div className="flex items-center gap-2">
               <img src="/favicon.svg" alt="" className="h-7 w-7" aria-hidden />
-              <BrandLogo className="text-sm font-extrabold text-[#C7395F]" accentClassName="text-brand-accent" />
-              <span className="hidden rounded-full bg-[#C7395F]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#C7395F] sm:inline">
+              <BrandLogo className="text-sm font-extrabold text-brand-red" accentClassName="text-brand-accent" />
+              <span className="hidden rounded-full bg-brand-red/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-red sm:inline">
                 Deals Spotlight
               </span>
             </div>
@@ -172,7 +172,7 @@ export default function HeroSlider({ initialBanners }: HeroSliderProps) {
                   ref={prevRef}
                   type="button"
                   aria-label="Previous slide"
-                  className="hero-spotlight-prev flex h-8 w-8 items-center justify-center rounded-full border border-[#c9bdd6] bg-[#DED4E8] text-[#C7395F] transition hover:border-[#C7395F] hover:text-[#C7395F]"
+                  className="hero-spotlight-prev flex h-8 w-8 items-center justify-center rounded-full border border-tan bg-white text-brand-red transition hover:border-brand-red hover:text-brand-red"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
@@ -180,7 +180,7 @@ export default function HeroSlider({ initialBanners }: HeroSliderProps) {
                   ref={nextRef}
                   type="button"
                   aria-label="Next slide"
-                  className="hero-spotlight-next flex h-8 w-8 items-center justify-center rounded-full border border-[#c9bdd6] bg-[#DED4E8] text-[#C7395F] transition hover:border-[#C7395F] hover:text-[#C7395F]"
+                  className="hero-spotlight-next flex h-8 w-8 items-center justify-center rounded-full border border-tan bg-white text-brand-red transition hover:border-brand-red hover:text-brand-red"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
@@ -226,9 +226,9 @@ export default function HeroSlider({ initialBanners }: HeroSliderProps) {
           {/* Progress bar */}
           {slides.length > 1 && (
             <div className="px-5 pb-4 sm:px-8">
-              <div className="h-1 overflow-hidden rounded-full bg-[#c9bdd6]">
+              <div className="h-1 overflow-hidden rounded-full bg-tan">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-[#C7395F] to-[#C7395F] transition-all duration-500 ease-out"
+                  className="h-full rounded-full bg-gradient-to-r from-brand-red to-brand-red transition-all duration-500 ease-out"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -246,7 +246,7 @@ export default function HeroSlider({ initialBanners }: HeroSliderProps) {
             <Link
               key={link.href}
               href={link.href}
-              className="rounded-full border border-[#c9bdd6] bg-white px-4 py-1.5 text-xs font-bold text-[#d45678] shadow-sm transition hover:border-[#C7395F] hover:text-[#C7395F] hover:shadow-md"
+              className="rounded-full border border-tan bg-white px-4 py-1.5 text-xs font-bold text-brand-red shadow-sm transition hover:border-brand-red hover:text-brand-red hover:shadow-md"
             >
               {link.label}
             </Link>

@@ -4,12 +4,12 @@ import { Suspense } from 'react';
 
 export const metadata = {
   title: 'Blog – Savings Tips, Deals & Lifestyle Articles',
-  description: 'Read inspiring blogs, money-saving tips, coupon guides, and the latest deal news on Favento.',
-  alternates: { canonical: 'https://favento.com/blogs' },
+  description: 'Read inspiring blogs, money-saving tips, coupon guides, and the latest deal news on FashionTested.',
+  alternates: { canonical: 'https://fashiontested.com/blogs' },
   openGraph: {
     title: 'Blog – Savings Tips, Deals & Lifestyle Articles',
     description: 'Read inspiring blogs, money-saving tips, coupon guides, and the latest deal news.',
-    url: 'https://favento.com/blogs',
+    url: 'https://fashiontested.com/blogs',
   },
 };
 

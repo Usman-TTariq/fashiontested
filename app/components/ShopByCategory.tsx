@@ -88,7 +88,7 @@ export default function ShopByCategory() {
                     {categories.map((cat, index) => {
                         const isEven = index % 2 === 0;
                         const bgClass = isEven ? "bg-brand-cyan/10" : "bg-brand-cyan/10";
-                        const iconColorClass = isEven ? "text-[#C7395F]" : "text-brand-navy-dark";
+                        const iconColorClass = isEven ? "text-brand-red" : "text-brand-navy-dark";
 
                         return (
                             <Link

@@ -63,7 +63,7 @@ export default function FAQSection() {
                         viewport={{ once: true }}
                         className="text-gray-600 max-w-2xl mx-auto text-lg"
                     >
-                        Everything you need to know about using Favento and getting the best deals.
+                        Everything you need to know about using FashionTested and getting the best deals.
                     </motion.p>
                 </div>
 
@@ -136,7 +136,7 @@ export default function FAQSection() {
                     >
                         <a
                             href="/faqs"
-                            className="inline-flex items-center gap-2 text-[#C7395F] font-bold hover:underline group"
+                            className="inline-flex items-center gap-2 text-brand-red font-bold hover:underline group"
                         >
                             View all FAQs
                             <ChevronDown className="w-4 h-4 -rotate-90 group-hover:translate-x-1 transition-transform" />

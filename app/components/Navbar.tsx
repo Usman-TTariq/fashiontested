@@ -26,6 +26,14 @@ type SearchResults = {
   coupons: Coupon[];
 };
 
+type NavDropdownItem = {
+  label: string;
+  href: string;
+  scrollTarget?: string;
+};
+
+const FEATURED_COUPONS_SCROLL_KEY = 'scrollToFeaturedCoupons';
+
 interface SearchSuggestionsDropdownProps {
   show: boolean;
   loading: boolean;
@@ -155,7 +163,7 @@ function SearchSuggestionsDropdown({
                 >
                   <div
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
-                    style={{ backgroundColor: category.backgroundColor || '#C7395F' }}
+                    style={{ backgroundColor: category.backgroundColor || '#dc2626' }}
                   >
                     {category.logoUrl ? (
                       <img src={category.logoUrl} className="h-6 w-6 object-contain" alt="" />
@@ -223,11 +231,12 @@ const getStoreFaviconUrl = (store: Store): string => {
 
 function HomeLogo() {
   return (
-    <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group">
+    <Link href="/" className="flex items-center gap-1 sm:gap-1 group">
       <img
-        src={siteConfig.logo}
+        // src={siteConfig.logo}
+        src="/fashiontestedlogo.png"
         alt={siteConfig.name}
-        className="w-10 h-10 sm:w-11 sm:h-11 object-contain shrink-0"
+        className="w-10 h-10 sm:w-14 sm:h-14 object-contain shrink-0"
       />
       <BrandLogo className="text-[15px] sm:text-lg font-bold tracking-wide text-brand-navy uppercase whitespace-nowrap leading-none" />
     </Link>
@@ -282,7 +291,7 @@ function HomeSearchPanel({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
           transition={{ duration: 0.2 }}
-          className="relative z-[130] border-t border-tan bg-cream"
+          className="relative z-[130] border-t border-tan bg-white"
         >
           <div className="home-container py-4">
             <form onSubmit={onSearchSubmit} className="relative mx-auto max-w-2xl">
@@ -307,7 +316,7 @@ function HomeSearchPanel({
                 </button>
                 <button
                   type="submit"
-                  className="shrink-0 rounded-lg bg-brand-navy px-4 py-1.5 text-xs font-bold text-brand-cyan hover:bg-brand-navy-dark transition-colors"
+                  className="shrink-0 rounded-lg bg-brand-navy px-4 py-1.5 text-xs font-bold text-white hover:bg-brand-navy-dark transition-colors"
                 >
                   Search
                 </button>
@@ -335,6 +344,30 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
   const pathname = usePathname();
   const router = useRouter();
   const isHomeNav = variant === "home";
+
+  const scrollToSection = (targetId: string) => {
+    document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const handleNavItemClick = (
+    e: React.MouseEvent,
+    item: NavDropdownItem,
+    onAfter?: () => void
+  ) => {
+    if (!item.scrollTarget) return;
+
+    e.preventDefault();
+
+    if (pathname === '/promotions') {
+      scrollToSection(item.scrollTarget);
+      onAfter?.();
+      return;
+    }
+
+    sessionStorage.setItem(FEATURED_COUPONS_SCROLL_KEY, '1');
+    router.push('/promotions');
+    onAfter?.();
+  };
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [homeSearchOpen, setHomeSearchOpen] = useState(false);
@@ -496,7 +529,7 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
             <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] text-white font-bold" style={{ backgroundColor: cat.backgroundColor || '#ccc' }}>
               {cat.logoUrl ? <img src={cat.logoUrl} className="w-4 h-4 object-contain" /> : cat.name.charAt(0)}
             </div>
-            <span className="text-sm text-gray-700 font-medium group-hover/item:text-[#C7395F] transition-colors">{cat.name}</span>
+            <span className="text-sm text-gray-700 font-medium group-hover/item:text-brand-red transition-colors">{cat.name}</span>
           </Link>
         ))}
       </div>
@@ -532,13 +565,13 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
                     target.style.display = 'none';
                     const parent = target.parentElement;
                     if (parent) {
-                      parent.innerHTML = `<div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#C7395F] to-brand-navy-light flex items-center justify-center text-white text-xs font-bold">${store.name.charAt(0).toUpperCase()}</div>`;
+                      parent.innerHTML = `<div class="w-8 h-8 rounded-full bg-gradient-to-br from-brand-red to-brand-navy-light flex items-center justify-center text-white text-xs font-bold">${store.name.charAt(0).toUpperCase()}</div>`;
                     }
                   }
                 }}
               />
             </div>
-            <span className="text-sm text-gray-700 font-medium group-hover/item:text-[#C7395F] transition-colors truncate">{store.name}</span>
+            <span className="text-sm text-gray-700 font-medium group-hover/item:text-brand-red transition-colors truncate">{store.name}</span>
           </Link>
         ))}
       </div>
@@ -553,10 +586,15 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
   );
 
   // 3. Simple List Menu
-  const SimpleMenu = ({ items }: { items: { label: string; href: string }[] }) => (
+  const SimpleMenu = ({ items, onItemClick }: { items: NavDropdownItem[]; onItemClick?: () => void }) => (
     <div className="w-48 bg-white rounded-b-xl shadow-xl border border-gray-100 py-2">
       {items.map((item) => (
-        <Link key={item.label} href={item.href} className="block px-4 py-2 text-sm text-gray-600 hover:text-[#C7395F] hover:bg-gray-50 font-medium">
+        <Link
+          key={item.label}
+          href={item.href}
+          onClick={(e) => handleNavItemClick(e, item, onItemClick)}
+          className="block px-4 py-2 text-sm text-gray-600 hover:text-brand-red hover:bg-gray-50 font-medium"
+        >
           {item.label}
         </Link>
       ))}
@@ -589,7 +627,7 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
   ];
 
   const homeNavItems = [
-    { name: "Home", href: "/", dropdown: null as { label: string; href: string }[] | null },
+    { name: "Home", href: "/", dropdown: null as NavDropdownItem[] | null },
     {
       name: "Fashion",
       href: "/blogs?category=fashion",
@@ -613,17 +651,17 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
       href: "/blogs",
       dropdown: [
         { label: "Latest Blogs", href: "/blogs" },
-        { label: "Popular Coupons", href: "/coupons" },
+        { label: "Popular Coupons", href: "/promotions", scrollTarget: "featured" },
         { label: "Top Stores", href: "/stores" },
         { label: "All Categories", href: "/categories" },
       ],
     },
-    { name: "Promotions", href: "/coupons", dropdown: null },
+    { name: "Promotions", href: "/promotions", dropdown: null },
   ];
 
   if (isHomeNav) {
     return (
-      <header className="sticky top-0 z-[120] bg-cream border-b border-tan">
+      <header className="sticky top-0 z-[120] bg-white border-b border-tan shadow-sm">
         <div className="home-container">
           <div className="relative flex items-center justify-center py-5 min-h-[76px]">
             <button
@@ -646,7 +684,7 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
                   setSearchQuery('');
                 }
               }}
-              className="absolute right-0 inline-flex items-center gap-2 rounded-lg bg-brand-navy px-4 py-2.5 text-sm font-bold text-brand-cyan hover:bg-brand-navy-dark transition-colors"
+              className="absolute right-0 inline-flex items-center gap-2 rounded-lg bg-brand-red px-4 py-2.5 text-sm font-bold text-white hover:bg-brand-yellow-hover transition-colors"
               aria-expanded={homeSearchOpen}
             >
               {homeSearchOpen ? <X className="h-4 w-4" strokeWidth={2.5} /> : <Search className="h-4 w-4" strokeWidth={2.5} />}
@@ -714,7 +752,10 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
                         transition={{ duration: 0.15 }}
                         className="absolute top-full left-0 z-50 pt-1"
                       >
-                        <SimpleMenu items={item.dropdown} />
+                        <SimpleMenu
+                          items={item.dropdown}
+                          onItemClick={() => setHomeActiveDropdown(null)}
+                        />
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -723,7 +764,7 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
             </ul>
             <Link
               href="/contact-us"
-              className="rounded-md bg-brand-cyan px-4 py-1.5 text-sm font-semibold text-brand-navy hover:bg-brand-cyan/80 transition-colors shrink-0"
+              className="rounded-md bg-brand-red px-4 py-1.5 text-sm font-semibold text-white hover:bg-brand-yellow-hover transition-colors shrink-0"
             >
               Contact Us
             </Link>
@@ -754,7 +795,10 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
                           <Link
                             key={link.href}
                             href={link.href}
-                            onClick={() => setMobileMenuOpen(false)}
+                            onClick={(e) => {
+                              handleNavItemClick(e, link, () => setMobileMenuOpen(false));
+                              if (!link.scrollTarget) setMobileMenuOpen(false);
+                            }}
                             className="block py-1.5 text-xs text-white/70 hover:text-white"
                           >
                             {link.label}
@@ -767,7 +811,7 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
                 <Link
                   href="/contact-us"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="mt-4 inline-block rounded-md bg-brand-cyan px-4 py-2 text-sm font-semibold text-brand-navy"
+                  className="mt-4 inline-block rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white"
                 >
                   Contact Us
                 </Link>
@@ -832,7 +876,8 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
 
             <Link href="/" className="flex-shrink-0 flex items-center gap-2">
               <img
-                src={siteConfig.logo}
+                // src={siteConfig.logo}
+                src="/fashiontestedlogo.png"
                 alt={siteConfig.name}
                 className="w-10 h-10 object-contain"
               />
@@ -853,7 +898,7 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
                   onChange={(e) => handleSearchChange(e.target.value)}
                   onFocus={() => searchQuery.trim().length > 0 && setShowSuggestions(true)}
                 />
-                <button type="submit" className="mr-1 bg-brand-navy text-brand-cyan px-6 py-2 rounded-full font-bold text-xs hover:bg-brand-navy-dark transition-all shadow-sm hover:shadow-md">
+                <button type="submit" className="mr-1 bg-brand-red text-white px-6 py-2 rounded-full font-bold text-xs hover:bg-brand-yellow-hover transition-all shadow-sm hover:shadow-md">
                   Search
                 </button>
               </form>
@@ -872,7 +917,7 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
 
             <div className="flex items-center gap-6 text-white">
               <div className="hidden lg:flex items-center gap-2 pr-4 border-r border-white/20">
-                <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center"><Phone className="w-4 h-4 text-[#C7395F]" /></div>
+                <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center"><Phone className="w-4 h-4 text-brand-red" /></div>
                 <div className="flex flex-col leading-none">
                   <span className="text-[10px] text-brand-cyan/90 font-medium tracking-wide">Hotline:</span>
                   <span className="text-sm font-bold">196475</span>
@@ -902,7 +947,7 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
                   <Link href={link.path} className={`text-[13px] font-bold flex items-center gap-1 hover:text-brand-navy transition-colors uppercase tracking-wide h-14 ${pathname === link.path ? "text-brand-navy nav-link-active" : "text-gray-700"}`}>
                     {link.name}
                     {link.component && (
-                      <ChevronDown className={`w-3.5 h-3.5 mt-0.5 text-gray-400 group-hover:rotate-180 transition-transform duration-300 ${activeDropdown === link.name ? 'rotate-180 text-[#C7395F]' : ''}`} />
+                      <ChevronDown className={`w-3.5 h-3.5 mt-0.5 text-gray-400 group-hover:rotate-180 transition-transform duration-300 ${activeDropdown === link.name ? 'rotate-180 text-brand-red' : ''}`} />
                     )}
                   </Link>
                   <AnimatePresence>
@@ -916,8 +961,8 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
               ))}
             </div>
             <div className="flex items-center gap-6">
-              <Link href="/submit-coupon" className="text-[13px] font-bold text-gray-600 hover:text-[#C7395F] transition-colors uppercase tracking-wide">Submit Coupon</Link>
-              <Link href="/support" className="text-[13px] font-bold text-gray-600 hover:text-[#C7395F] transition-colors uppercase tracking-wide">Support & FAQs</Link>
+              <Link href="/submit-coupon" className="text-[13px] font-bold text-gray-600 hover:text-brand-red transition-colors uppercase tracking-wide">Submit Coupon</Link>
+              <Link href="/support" className="text-[13px] font-bold text-gray-600 hover:text-brand-red transition-colors uppercase tracking-wide">Support & FAQs</Link>
             </div>
           </div>
         </div>
@@ -926,7 +971,7 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
       {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="lg:hidden fixed inset-x-0 top-[140px] z-50 bg-[#C7395F] border-t border-white/10 shadow-xl overflow-hidden">
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="lg:hidden fixed inset-x-0 top-[140px] z-50 bg-brand-red border-t border-white/10 shadow-xl overflow-hidden">
             <div className="px-4 py-6 space-y-4 max-h-[80vh] overflow-y-auto text-white">
               <div className="mb-6">
                 <form onSubmit={handleSearch} className="flex w-full bg-white/10 backdrop-blur-sm rounded-full p-1 border border-white/20">

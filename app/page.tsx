@@ -15,7 +15,7 @@ export default async function Home() {
   const articles = await getArticlesForHome()
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-white">
       <Navbar variant="home" />
       <BlogCentricHome articles={articles} />
       <SiteFooter />

@@ -197,7 +197,7 @@ export default function StorePageClient({
         <Navbar />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#C7395F] mb-4"></div>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-brand-red mb-4"></div>
             <p className="text-gray-600">Loading store...</p>
           </div>
         </div>
@@ -213,7 +213,7 @@ export default function StorePageClient({
           <div className="text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">Store Not Found</h1>
             <p className="text-gray-600 mb-6">The store you're looking for doesn't exist.</p>
-            <Link href="/stores" className="inline-block px-6 py-3 bg-gradient-to-r from-[#C7395F] to-[#d45678] text-white rounded-lg hover:shadow-lg transition-all">
+            <Link href="/stores" className="inline-block px-6 py-3 bg-gradient-to-r from-brand-red to-brand-red text-white rounded-lg hover:shadow-lg transition-all">
               Browse All Stores
             </Link>
           </div>
@@ -228,7 +228,7 @@ export default function StorePageClient({
 
       {/* Decorative Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-[#C7395F]/10 to-[#d45678]/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-brand-red/10 to-brand-red/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-br from-brand-cyan/10 to-brand-cyan/5 rounded-full blur-3xl"></div>
       </div>
 
@@ -270,7 +270,7 @@ export default function StorePageClient({
                       if (parent) {
                         target.style.display = 'none';
                         const fallback = document.createElement('div');
-                        fallback.className = 'w-full h-full bg-gradient-to-br from-[#C7395F] to-[#d45678] rounded-xl flex items-center justify-center';
+                        fallback.className = 'w-full h-full bg-gradient-to-br from-brand-red to-brand-red rounded-xl flex items-center justify-center';
                         fallback.innerHTML = `<span class="text-white font-bold text-4xl">${store.name.charAt(0).toUpperCase()}</span>`;
                         parent.appendChild(fallback);
                       }
@@ -288,7 +288,7 @@ export default function StorePageClient({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
               >
-                <span className="bg-gradient-to-r from-[#C7395F] to-[#d45678] bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-brand-red to-brand-red bg-clip-text text-transparent">
                   {store.subStoreName || store.name}
                 </span>
               </motion.h1>
@@ -331,7 +331,7 @@ export default function StorePageClient({
                 href={store.trackingLink || store.trackingUrl || store.websiteUrl || '#'}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 mt-4 px-6 py-3 bg-gradient-to-r from-[#C7395F] to-[#d45678] text-white rounded-lg hover:shadow-xl transition-all duration-300 hover:scale-105 font-semibold"
+                className="inline-flex items-center gap-2 mt-4 px-6 py-3 bg-gradient-to-r from-brand-red to-brand-red text-white rounded-lg hover:shadow-xl transition-all duration-300 hover:scale-105 font-semibold"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
@@ -353,7 +353,7 @@ export default function StorePageClient({
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <h2 className="text-3xl md:text-4xl font-bold mb-2">
-              Available <span className="bg-gradient-to-r from-[#C7395F] to-[#d45678] bg-clip-text text-transparent">Coupons</span>
+              Available <span className="bg-gradient-to-r from-brand-red to-brand-red bg-clip-text text-transparent">Coupons</span>
             </h2>
             <p className="text-gray-600">
               {coupons.length > 0
@@ -365,7 +365,7 @@ export default function StorePageClient({
           {coupons.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-2xl shadow-md">
               <p className="text-gray-500 text-lg mb-4">No coupons available for this store right now.</p>
-              <Link href="/stores" className="inline-block px-6 py-3 bg-gradient-to-r from-[#C7395F] to-[#d45678] text-white rounded-lg hover:shadow-lg transition-all">
+              <Link href="/stores" className="inline-block px-6 py-3 bg-gradient-to-r from-brand-red to-brand-red text-white rounded-lg hover:shadow-lg transition-all">
                 Browse Other Stores
               </Link>
             </div>
@@ -381,7 +381,7 @@ export default function StorePageClient({
                 return (
                   <motion.div
                     key={coupon.id}
-                    className="group bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 hover:border-[#C7395F] flex items-center gap-4 cursor-pointer"
+                    className="group bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 hover:border-brand-red flex items-center gap-4 cursor-pointer"
                     onClick={() => !isExpired && handleCouponClick(coupon)}
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -400,13 +400,13 @@ export default function StorePageClient({
                               const parent = target.parentElement;
                               if (parent) {
                                 const initial = (store?.name || title).charAt(0).toUpperCase() || '?';
-                                parent.innerHTML = `<div class="w-16 h-16 rounded-lg bg-gradient-to-br from-[#C7395F] to-[#d45678] flex items-center justify-center"><span class="text-xl font-bold text-white">${initial}</span></div>`;
+                                parent.innerHTML = `<div class="w-16 h-16 rounded-lg bg-gradient-to-br from-brand-red to-brand-red flex items-center justify-center"><span class="text-xl font-bold text-white">${initial}</span></div>`;
                               }
                             }}
                           />
                         </div>
                       ) : (
-                        <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-[#C7395F] to-[#d45678] flex items-center justify-center">
+                        <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-brand-red to-brand-red flex items-center justify-center">
                           <span className="text-xl font-bold text-white">
                             {(store?.name || title).charAt(0).toUpperCase() || '?'}
                           </span>
@@ -445,7 +445,7 @@ export default function StorePageClient({
                             e.stopPropagation();
                             handleCouponClick(coupon);
                           }}
-                          className="group/btn relative bg-gradient-to-r from-[#C7395F] to-[#d45678] border-2 border-dashed border-white/60 rounded-lg px-6 py-3 text-white font-semibold hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-2"
+                          className="group/btn relative bg-gradient-to-r from-brand-red to-brand-red border-2 border-dashed border-white/60 rounded-lg px-6 py-3 text-white font-semibold hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-2"
                         >
                           {coupon.couponType === 'code' ? (
                             <>
@@ -480,7 +480,7 @@ export default function StorePageClient({
           <div className="max-w-7xl mx-auto">
             <div className="mb-8">
               <h2 className="text-3xl md:text-4xl font-bold mb-2">
-                Related <span className="bg-gradient-to-r from-[#C7395F] to-[#d45678] bg-clip-text text-transparent">Stores</span>
+                Related <span className="bg-gradient-to-r from-brand-red to-brand-red bg-clip-text text-transparent">Stores</span>
               </h2>
               <p className="text-gray-600">Discover more amazing deals from similar stores</p>
             </div>
@@ -493,7 +493,7 @@ export default function StorePageClient({
                   className="group"
                 >
                   <motion.div
-                    className="bg-white rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-[#C7395F]/30 text-center"
+                    className="bg-white rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-brand-red/30 text-center"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: index * 0.05 }}
@@ -516,7 +516,7 @@ export default function StorePageClient({
                             if (parent) {
                               target.style.display = 'none';
                               const fallback = document.createElement('div');
-                              fallback.className = 'w-16 h-16 rounded-lg bg-gradient-to-br from-[#C7395F] to-[#d45678] flex items-center justify-center';
+                              fallback.className = 'w-16 h-16 rounded-lg bg-gradient-to-br from-brand-red to-brand-red flex items-center justify-center';
                               fallback.innerHTML = `<span class="text-white font-bold text-xl">${relatedStore.name.charAt(0)}</span>`;
                               parent.appendChild(fallback);
                             }
@@ -524,7 +524,7 @@ export default function StorePageClient({
                         }}
                       />
                     </div>
-                    <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-[#C7395F] transition-colors">
+                    <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-brand-red transition-colors">
                       {relatedStore.name}
                     </h3>
                   </motion.div>
@@ -535,7 +535,7 @@ export default function StorePageClient({
             <div className="text-center mt-8">
               <Link
                 href="/stores"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-[#C7395F] text-[#C7395F] rounded-lg hover:bg-[#C7395F] hover:text-white transition-all duration-300 font-semibold"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-brand-red text-brand-red rounded-lg hover:bg-brand-red hover:text-white transition-all duration-300 font-semibold"
               >
                 View All Stores
                 <ArrowRight className="w-5 h-5" />
@@ -549,7 +549,7 @@ export default function StorePageClient({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <Link
           href="/stores"
-          className="inline-flex items-center gap-2 text-[#C7395F] hover:text-[#d45678] font-semibold transition-colors"
+          className="inline-flex items-center gap-2 text-brand-red hover:text-brand-red font-semibold transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />

@@ -19,11 +19,11 @@ type Slide = {
 };
 
 const ACCENTS = [
-  'from-[#C7395F] to-[#d45678]',
-  'from-[#d45678] to-[#C7395F]',
-  'from-[#d45678] to-[#d45678]',
-  'from-[#C7395F] to-[#d45678]',
-  'from-[#d45678] to-[#d45678]',
+  'from-brand-red to-brand-red',
+  'from-brand-red to-brand-red',
+  'from-brand-red to-brand-red',
+  'from-brand-red to-brand-red',
+  'from-brand-red to-brand-red',
 ];
 
 function extractDomain(url?: string): string | null {
@@ -70,7 +70,7 @@ function StoreLogo({
 
   return (
     <div
-      className={`${box} rounded-2xl bg-white shadow-lg border border-[#c9bdd6] flex items-center justify-center shrink-0`}
+      className={`${box} rounded-2xl bg-white shadow-lg border border-tan flex items-center justify-center shrink-0`}
     >
       {src ? (
         <img
@@ -81,7 +81,7 @@ function StoreLogo({
           decoding="async"
         />
       ) : (
-        <span className="text-3xl font-extrabold text-[#C7395F]">{name.charAt(0)}</span>
+        <span className="text-3xl font-extrabold text-brand-red">{name.charAt(0)}</span>
       )}
     </div>
   );
@@ -153,13 +153,13 @@ export default function HeroCarousel({ initialBanners }: HeroCarouselProps) {
 
   if (loading) {
     return (
-      <section className="bg-[#DED4E8] border-b border-[#c9bdd6] py-6">
+      <section className="bg-white border-b border-tan py-6">
         <div className="home-container">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            <div className="lg:col-span-8 h-[220px] sm:h-[300px] bg-[#c9bdd6]/50 rounded-xl animate-pulse" />
+            <div className="lg:col-span-8 h-[220px] sm:h-[300px] bg-tan/50 rounded-xl animate-pulse" />
             <div className="lg:col-span-4 flex flex-col gap-4">
-              <div className="h-[140px] bg-[#c9bdd6]/50 rounded-xl animate-pulse" />
-              <div className="h-[140px] bg-[#c9bdd6]/50 rounded-xl animate-pulse" />
+              <div className="h-[140px] bg-tan/50 rounded-xl animate-pulse" />
+              <div className="h-[140px] bg-tan/50 rounded-xl animate-pulse" />
             </div>
           </div>
         </div>
@@ -173,7 +173,7 @@ export default function HeroCarousel({ initialBanners }: HeroCarouselProps) {
   const accent = ACCENTS[activeIndex % ACCENTS.length];
 
   return (
-    <section className="bg-[#DED4E8] border-b border-[#c9bdd6] py-6 sm:py-8">
+    <section className="bg-white border-b border-tan py-6 sm:py-8">
       <div className="home-container">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Main carousel */}
@@ -193,18 +193,18 @@ export default function HeroCarousel({ initialBanners }: HeroCarouselProps) {
 
               <div className="absolute inset-0 flex items-center justify-between px-6 sm:px-10 gap-4">
                 <div className="flex-1 min-w-0 z-10">
-                  <span className="inline-flex items-center gap-1.5 text-[#C7395F] text-xs font-bold uppercase tracking-wider mb-2">
+                  <span className="inline-flex items-center gap-1.5 text-brand-red text-xs font-bold uppercase tracking-wider mb-2">
                     <Tag className="w-3.5 h-3.5" />
                     Featured Promotion
                   </span>
-                  <h1 className="text-[#DED4E8] text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight truncate">
+                  <h1 className="text-white text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight truncate">
                     {current.title}
                   </h1>
-                  <p className="text-[#DED4E8]/80 text-sm sm:text-base mt-2 line-clamp-2 max-w-md">
+                  <p className="text-white/80 text-sm sm:text-base mt-2 line-clamp-2 max-w-md">
                     {current.subtitle}
                   </p>
                   {current.discount && (
-                    <span className="inline-block mt-3 px-3 py-1 rounded-full bg-[#C7395F] text-white text-xs font-bold">
+                    <span className="inline-block mt-3 px-3 py-1 rounded-full bg-brand-red text-white text-xs font-bold">
                       {current.discount}
                     </span>
                   )}
@@ -223,7 +223,7 @@ export default function HeroCarousel({ initialBanners }: HeroCarouselProps) {
                   type="button"
                   onClick={(e) => { e.preventDefault(); goTo('prev'); }}
                   aria-label="Previous slide"
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/95 text-[#C7395F] shadow-md opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/95 text-brand-red shadow-md opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -231,7 +231,7 @@ export default function HeroCarousel({ initialBanners }: HeroCarouselProps) {
                   type="button"
                   onClick={(e) => { e.preventDefault(); goTo('next'); }}
                   aria-label="Next slide"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/95 text-[#C7395F] shadow-md opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/95 text-brand-red shadow-md opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -243,7 +243,7 @@ export default function HeroCarousel({ initialBanners }: HeroCarouselProps) {
                       aria-label={`Go to slide ${i + 1}`}
                       onClick={(e) => { e.preventDefault(); setActiveIndex(i); }}
                       className={`h-1.5 rounded-full transition-all ${
-                        i === activeIndex ? 'w-6 bg-[#C7395F]' : 'w-1.5 bg-white/50'
+                        i === activeIndex ? 'w-6 bg-brand-red' : 'w-1.5 bg-white/50'
                       }`}
                     />
                   ))}
@@ -258,15 +258,15 @@ export default function HeroCarousel({ initialBanners }: HeroCarouselProps) {
               <Link
                 key={`${card.title}-${i}`}
                 href={card.href}
-                className="relative flex-1 min-h-[140px] sm:min-h-[152px] rounded-xl overflow-hidden border border-[#c9bdd6] bg-[#c9bdd6]/40 hover:border-[#C7395F] hover:shadow-md transition-all group/card flex flex-col"
+                className="relative flex-1 min-h-[140px] sm:min-h-[152px] rounded-xl overflow-hidden border border-tan bg-tan/40 hover:border-brand-red hover:shadow-md transition-all group/card flex flex-col"
               >
                 <div className="flex-1 flex items-center justify-center p-4 pt-5">
                   <StoreLogo src={card.logoUrl} name={card.title} size="sm" />
                 </div>
-                <div className="bg-[#C7395F] px-4 py-2.5 flex items-center justify-between gap-2">
-                  <p className="text-[#DED4E8] text-sm font-bold truncate">{card.title}</p>
+                <div className="bg-brand-red px-4 py-2.5 flex items-center justify-between gap-2">
+                  <p className="text-white text-sm font-bold truncate">{card.title}</p>
                   {card.discount && (
-                    <span className="text-[#C7395F] text-[10px] font-bold uppercase shrink-0">
+                    <span className="text-brand-red text-[10px] font-bold uppercase shrink-0">
                       Deal
                     </span>
                   )}

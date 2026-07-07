@@ -322,6 +322,16 @@ function CouponsContent() {
     if (storePage > storeTotalPages) setStorePage(storeTotalPages);
   }, [storePage, storeTotalPages]);
 
+  useEffect(() => {
+    if (loading) return;
+    if (sessionStorage.getItem('scrollToFeaturedCoupons') !== '1') return;
+
+    sessionStorage.removeItem('scrollToFeaturedCoupons');
+    requestAnimationFrame(() => {
+      document.getElementById('featured')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, [loading]);
+
   const clearFilters = () => {
     setSelectedCategory('');
     setSelectedStore('');
@@ -370,7 +380,7 @@ function CouponsContent() {
 
       {/* Featured */}
       {!loading && (featuredCoupons.length > 0 || featuredStores.length > 0) && (
-        <section className="border-b border-tan bg-white">
+        <section id="featured" className="border-b border-tan bg-white">
           <div className="home-container py-10 sm:py-12">
             <div className="flex items-center gap-2 mb-6">
               <Flame className="w-5 h-5 text-brand-accent" />

@@ -350,8 +350,8 @@ export default function PopularCoupons() {
                         <button
                           onClick={(e) => handleToggleFavorite(e, coupon)}
                           className={`p-2 rounded-lg transition-colors ${coupon.id && isFavorite(coupon.id)
-                            ? 'bg-brand-cyan/15 text-[#C7395F]'
-                            : 'bg-gray-100 text-gray-600 hover:bg-brand-red/15 hover:text-[#C7395F]'
+                            ? 'bg-brand-cyan/15 text-brand-red'
+                            : 'bg-gray-100 text-gray-600 hover:bg-brand-red/15 hover:text-brand-red'
                             }`}
                           title={coupon.id && isFavorite(coupon.id) ? 'Remove from favorites' : 'Add to favorites'}
                         >
@@ -442,12 +442,12 @@ export default function PopularCoupons() {
                             const parent = target.parentElement;
                             if (parent) {
                               const initial = (coupon.storeName || coupon.code)?.charAt(0)?.toUpperCase() || '?';
-                              parent.innerHTML = `<div class="w-16 h-16 rounded-full bg-gradient-to-br from-[#C7395F] to-[#d45678] flex items-center justify-center"><span class="text-2xl font-bold text-white">${initial}</span></div>`;
+                              parent.innerHTML = `<div class="w-16 h-16 rounded-full bg-gradient-to-br from-brand-red to-brand-red flex items-center justify-center"><span class="text-2xl font-bold text-white">${initial}</span></div>`;
                             }
                           }}
                         />
                       ) : (
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#C7395F] to-[#d45678] flex items-center justify-center">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-red to-brand-red flex items-center justify-center">
                           <span className="text-2xl font-bold text-white">
                             {(coupon.storeName || coupon.code)?.charAt(0)?.toUpperCase() || '?'}
                           </span>

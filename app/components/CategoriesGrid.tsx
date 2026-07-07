@@ -73,7 +73,7 @@ export default function CategoriesGrid() {
               id="sortBy"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as 'newest' | 'name')}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#C7395F]"
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-brand-red"
             >
               <option value="newest">Newest</option>
               <option value="name">Name</option>
@@ -133,7 +133,7 @@ export default function CategoriesGrid() {
                                 </div>
                               )}
                             </div>
-                            <span className="text-xs font-semibold text-gray-800 group-hover:text-[#C7395F] transition-colors duration-300 lowercase text-center line-clamp-2">
+                            <span className="text-xs font-semibold text-gray-800 group-hover:text-brand-red transition-colors duration-300 lowercase text-center line-clamp-2">
                               {category.name.toLowerCase()}
                             </span>
                           </Link>
@@ -176,7 +176,7 @@ export default function CategoriesGrid() {
                                 </div>
                               )}
                             </div>
-                            <span className="text-xs font-semibold text-gray-800 group-hover:text-[#C7395F] transition-colors duration-300 lowercase text-center line-clamp-2">
+                            <span className="text-xs font-semibold text-gray-800 group-hover:text-brand-red transition-colors duration-300 lowercase text-center line-clamp-2">
                               {category.name.toLowerCase()}
                             </span>
                           </Link>
@@ -219,7 +219,7 @@ export default function CategoriesGrid() {
                                 </div>
                               )}
                             </div>
-                            <span className="text-xs font-semibold text-gray-800 group-hover:text-[#C7395F] transition-colors duration-300 lowercase text-center line-clamp-2">
+                            <span className="text-xs font-semibold text-gray-800 group-hover:text-brand-red transition-colors duration-300 lowercase text-center line-clamp-2">
                               {category.name.toLowerCase()}
                             </span>
                           </Link>
@@ -284,7 +284,7 @@ export default function CategoriesGrid() {
                     </div>
                   )}
                 </div>
-                <span className="text-sm sm:text-base font-semibold text-gray-800 group-hover:text-[#C7395F] transition-all duration-300 lowercase flex-1 group-hover:translate-x-1">
+                <span className="text-sm sm:text-base font-semibold text-gray-800 group-hover:text-brand-red transition-all duration-300 lowercase flex-1 group-hover:translate-x-1">
                   {category.name.toLowerCase()}
                 </span>
                 {/* Arrow icon on hover */}

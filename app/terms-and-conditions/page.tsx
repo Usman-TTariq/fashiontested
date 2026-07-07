@@ -3,12 +3,12 @@ import SiteFooter from '@/app/components/SiteFooter'
 
 export const metadata = {
   title: 'Terms and Conditions',
-  description: 'Review the terms and conditions for using Favento coupon and cashback platform.',
-  alternates: { canonical: 'https://favento.com/terms-and-conditions' },
+  description: 'Review the terms and conditions for using FashionTested coupon and cashback platform.',
+  alternates: { canonical: 'https://fashiontested.com/terms-and-conditions' },
   openGraph: {
     title: 'Terms and Conditions',
-    description: 'Review the terms and conditions for using Favento coupon and cashback platform.',
-    url: 'https://favento.com/terms-and-conditions',
+    description: 'Review the terms and conditions for using FashionTested coupon and cashback platform.',
+    url: 'https://fashiontested.com/terms-and-conditions',
   },
 };
 

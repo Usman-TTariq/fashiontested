@@ -1,5 +1,5 @@
 /**
- * Apply Favento brand colors across the codebase.
+ * Apply FashionTested brand colors across the codebase.
  * Usage: node scripts/apply-theme.mjs
  */
 

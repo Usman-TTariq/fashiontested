@@ -55,7 +55,7 @@ export default function SpotlightBanner() {
               Smart Shopping Starts Here
             </h2>
             <p className="text-white/75 text-base leading-relaxed max-w-lg">
-              Favento helps you find verified coupons and cashback offers from thousands of trusted retailers — so you save more on every purchase.
+              FashionTested helps you find verified coupons and cashback offers from thousands of trusted retailers — so you save more on every purchase.
             </p>
             <ul className="space-y-3">
               {missionPoints.map((point) => (

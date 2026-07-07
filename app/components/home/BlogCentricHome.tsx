@@ -1,17 +1,11 @@
 import Link from 'next/link'
+import { ArrowUpRight } from 'lucide-react'
 import ArticleImage from '@/app/components/ArticleImage'
 import type { NewsArticle } from '@/lib/services/newsService'
 import { BLOG_CATEGORIES, formatArticleMetaLine } from '@/lib/utils/articleMeta'
 
 interface BlogCentricHomeProps {
   articles: NewsArticle[]
-}
-
-function formatHeroMeta(article: NewsArticle): string {
-  return formatArticleMetaLine({
-    date: article.date,
-    author: article.author,
-  })
 }
 
 function formatArticleMetaFull(article: NewsArticle): string {
@@ -29,53 +23,79 @@ function formatArticleMetaShort(article: NewsArticle): string {
   })
 }
 
+function formatCardIndex(index: number): string {
+  return String(index).padStart(3, '0')
+}
+
 function BentoHeroCard({
   article,
+  index,
   className = '',
-  titleLines = 2,
+  size = 'medium',
 }: {
   article: NewsArticle
+  index: number
   className?: string
-  titleLines?: 2 | 3
+  size?: 'large' | 'medium' | 'small'
 }) {
   if (!article.id) return null
 
+  const titleClass =
+    size === 'large'
+      ? 'text-xl sm:text-2xl md:text-[1.65rem] line-clamp-3'
+      : size === 'small'
+        ? 'text-base sm:text-lg line-clamp-2'
+        : 'text-lg sm:text-xl line-clamp-2'
+
   return (
-    <Link
-      href={`/blogs/${article.id}`}
-      className={`group relative block overflow-hidden bg-brand-navy min-h-[220px] ${className}`}
-    >
-      <ArticleImage
-        src={article.imageUrl}
-        alt={article.title}
-        category={article.category}
-        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-      />
+    <div className={`group relative ${className}`}>
+      <Link
+        href={`/blogs/${article.id}`}
+        className="relative block h-full min-h-[inherit] overflow-hidden rounded-[1.75rem] sm:rounded-[2rem] bg-neutral-900 shadow-sm transition-shadow duration-300 hover:shadow-lg"
+      >
+        <ArticleImage
+          src={article.imageUrl}
+          alt={article.title}
+          category={article.category}
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+        />
 
-      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/20" />
 
-      <div className="relative flex h-full min-h-[inherit] flex-col justify-end p-4 sm:p-5">
-        {article.category && (
-          <span className="mb-2 inline-block w-fit bg-brand-navy px-2 py-1 text-[10px] font-bold tracking-[0.15em] text-white uppercase">
-            {article.category}
+        <div className="absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-3 p-4 sm:p-5">
+          {article.category && (
+            <span className="inline-flex rounded-full border border-white/70 bg-white/15 px-3.5 py-1.5 text-xs font-medium capitalize text-white backdrop-blur-sm">
+              {article.category.toLowerCase()}
+            </span>
+          )}
+          {article.date && (
+            <span className="ml-auto inline-flex shrink-0 rounded-full bg-white/15 px-3.5 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
+              {article.date}
+            </span>
+          )}
+        </div>
+
+        <div className="relative flex h-full min-h-[inherit] flex-col justify-end p-4 pb-16 pr-16 sm:p-5 sm:pb-[4.5rem] sm:pr-[4.5rem]">
+          <span className="mb-1.5 text-xs font-medium tracking-[0.2em] text-white/75">
+            {formatCardIndex(index)}
           </span>
-        )}
-        <h3
-          className={`font-bold leading-snug text-white ${
-            titleLines === 3
-              ? 'text-lg sm:text-xl md:text-2xl line-clamp-3'
-              : 'text-sm sm:text-base line-clamp-2'
-          }`}
-        >
-          {article.title}
-        </h3>
-        {(article.date || article.author) && (
-          <p className="mt-2 text-[10px] sm:text-[11px] font-semibold tracking-[0.12em] text-white/90 uppercase">
-            {formatHeroMeta(article)}
-          </p>
-        )}
-      </div>
-    </Link>
+          <h3 className={`font-bold leading-snug text-white ${titleClass}`}>{article.title}</h3>
+        </div>
+      </Link>
+
+      {/* Scooped corner cutout */}
+      {/* <div
+        className="pointer-events-none absolute bottom-0 right-0 z-10 size-[4.25rem] rounded-tl-[100%] bg-cream sm:size-[4.75rem]"
+        aria-hidden
+      /> */}
+
+      <span
+        className="pointer-events-none absolute bottom-3 right-3 z-20 flex size-11 items-center justify-center rounded-full bg-white text-brand-navy shadow-md transition-transform duration-300 group-hover:scale-105 sm:bottom-3.5 sm:right-3.5 sm:size-12"
+        aria-hidden
+      >
+        <ArrowUpRight className="size-5" strokeWidth={2} />
+      </span>
+    </div>
   )
 }
 
@@ -86,10 +106,16 @@ function BentoHeroSection({ articles }: { articles: NewsArticle[] }) {
 
   if (articles.length < 5) {
     return (
-      <section className="hero-full-bleed bg-white section-divider">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1 sm:gap-2 w-full">
-          {articles.map((article) => (
-            <BentoHeroCard key={article.id} article={article} className="min-h-[260px]" titleLines={3} />
+      <section className="w-full bg-white px-[12px] pt-[10px] border-b-0">
+        <div className="grid w-full grid-cols-1 gap-1 sm:grid-cols-2 sm:gap-2 lg:grid-cols-3">
+          {articles.map((article, i) => (
+            <BentoHeroCard
+              key={article.id}
+              article={article}
+              index={i + 1}
+              className="min-h-[300px]"
+              size="large"
+            />
           ))}
         </div>
       </section>
@@ -97,62 +123,156 @@ function BentoHeroSection({ articles }: { articles: NewsArticle[] }) {
   }
 
   return (
-    <section className="hero-full-bleed bg-white section-divider">
-      <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 gap-1 sm:gap-2 w-full md:min-h-[520px] lg:min-h-[560px]">
+    <section className="w-full bg-white px-[12px] pt-[10px] border-b-0">
+      <div className="grid w-full grid-cols-1 gap-1 sm:gap-2 md:grid-cols-3 md:grid-rows-2 md:min-h-[540px] lg:min-h-[580px]">
           {left && (
             <BentoHeroCard
               article={left}
-              className="md:row-span-2 md:min-h-full min-h-[320px]"
-              titleLines={3}
+              index={1}
+              className="min-h-[320px] md:row-span-2 md:min-h-full"
+              size="large"
             />
           )}
 
           {topMiddle && (
             <BentoHeroCard
               article={topMiddle}
-              className="md:col-start-2 md:row-start-1 min-h-[240px]"
-              titleLines={2}
+              index={2}
+              className="min-h-[240px] md:col-start-2 md:row-start-1"
+              size="medium"
             />
           )}
 
           {right && (
             <BentoHeroCard
               article={right}
-              className="md:col-start-3 md:row-start-1 md:row-span-2 md:min-h-full min-h-[320px]"
-              titleLines={3}
+              index={3}
+              className="min-h-[320px] md:col-start-3 md:row-start-1 md:row-span-2 md:min-h-full"
+              size="large"
             />
           )}
 
           {(bottomLeft || bottomRight) && (
-            <div className="md:col-start-2 md:row-start-2 grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2 min-h-[200px]">
-              {bottomLeft && <BentoHeroCard article={bottomLeft} className="min-h-[200px]" titleLines={2} />}
-              {bottomRight && <BentoHeroCard article={bottomRight} className="min-h-[200px]" titleLines={2} />}
+            <div className="grid min-h-[220px] grid-cols-1 gap-1 sm:grid-cols-2 sm:gap-2 md:col-start-2 md:row-start-2">
+              {bottomLeft && (
+                <BentoHeroCard article={bottomLeft} index={4} className="min-h-[220px]" size="small" />
+              )}
+              {bottomRight && (
+                <BentoHeroCard article={bottomRight} index={5} className="min-h-[220px]" size="small" />
+              )}
             </div>
           )}
-        </div>
-      </section>
-    )
-  }
+      </div>
+    </section>
+  )
+}
 
 const CATEGORY_LABEL_COLORS: Record<string, string> = {
-  FASHION: 'bg-brand-brown text-white',
-  LIFESTYLE: 'bg-brand-cyan text-brand-navy',
-  BEAUTY: 'bg-brand-red text-white',
-  TRAVEL: 'bg-brand-navy-light text-white',
+  FASHION: 'bg-brand-navy text-white',
+  LIFESTYLE: 'bg-brand-red text-white',
+  BEAUTY: 'bg-brand-navy-light text-white',
+  TRAVEL: 'bg-brand-red text-white',
   HEALTH: 'bg-brand-navy text-white',
-  ENTERTAINMENT: 'bg-brand-navy-dark text-white',
-  FOOD: 'bg-brand-brown text-white',
+  ENTERTAINMENT: 'bg-brand-red text-white',
+  FOOD: 'bg-brand-navy text-white',
 }
 
 function CategoryLabel({ category }: { category: string }) {
-  const color = CATEGORY_LABEL_COLORS[category.toUpperCase()] || 'bg-brand-navy text-white'
+  const isRed = CATEGORY_LABEL_COLORS[category.toUpperCase()]?.includes('brand-red')
   return (
-    <Link
-      href={`/blogs?category=${category.toLowerCase()}`}
-      className={`inline-block px-2 py-0.5 text-[10px] font-bold tracking-[0.14em] uppercase mb-5 ${color}`}
-    >
-      {category}
-    </Link>
+    <div className="mb-5 flex items-center justify-between gap-4">
+      <Link
+        href={`/blogs?category=${category.toLowerCase()}`}
+        className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-[11px] font-bold tracking-[0.14em] uppercase transition-colors ${
+          isRed
+            ? 'bg-brand-red text-white hover:bg-brand-yellow-hover'
+            : 'bg-brand-navy text-white hover:bg-brand-navy-light'
+        }`}
+      >
+        {category}
+      </Link>
+      <Link
+        href={`/blogs?category=${category.toLowerCase()}`}
+        className="hidden text-xs font-semibold text-brand-red hover:underline sm:inline"
+      >
+        View all →
+      </Link>
+    </div>
+  )
+}
+
+function EditorialOverlayCard({
+  article,
+  index,
+  size = 'medium',
+  className = '',
+}: {
+  article: NewsArticle
+  index?: number
+  size?: 'large' | 'medium' | 'small'
+  className?: string
+}) {
+  if (!article.id) return null
+
+  const titleClass =
+    size === 'large'
+      ? 'text-xl sm:text-2xl md:text-[1.75rem] line-clamp-3'
+      : size === 'small'
+        ? 'text-sm sm:text-[15px] line-clamp-3'
+        : 'text-base sm:text-lg line-clamp-2'
+
+  const radiusClass = size === 'large' ? 'rounded-[1.75rem] sm:rounded-[2rem]' : 'rounded-2xl sm:rounded-[1.25rem]'
+  const paddingClass = size === 'large' ? 'p-5 sm:p-6 pb-16 pr-16 sm:pb-[4.25rem] sm:pr-[4.25rem]' : 'p-4 pb-14 pr-14 sm:p-4 sm:pb-[3.75rem] sm:pr-[3.75rem]'
+  const btnSizeClass =
+    size === 'large'
+      ? 'absolute bottom-3.5 right-3.5 size-11 sm:size-12'
+      : 'absolute bottom-2.5 right-2.5 size-9 sm:size-10'
+
+  return (
+    <div className={`group relative ${className}`}>
+      <Link
+        href={`/blogs/${article.id}`}
+        className={`relative block h-full min-h-[inherit] overflow-hidden bg-neutral-900 shadow-sm transition-shadow duration-300 hover:shadow-lg ${radiusClass}`}
+      >
+        <ArticleImage
+          src={article.imageUrl}
+          alt={article.title}
+          category={article.category}
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.05]"
+        />
+
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/15" />
+
+        <div className="absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-2 p-4 sm:p-5">
+          {article.category && (
+            <span className="inline-flex rounded-full border border-white/70 bg-white/15 px-3 py-1 text-[10px] font-medium capitalize text-white backdrop-blur-sm sm:text-xs">
+              {article.category.toLowerCase()}
+            </span>
+          )}
+          {article.date && (
+            <span className="ml-auto inline-flex shrink-0 rounded-full bg-white/15 px-3 py-1 text-[10px] font-medium text-white backdrop-blur-sm sm:text-xs">
+              {article.date}
+            </span>
+          )}
+        </div>
+
+        <div className={`relative flex h-full min-h-[inherit] flex-col justify-end ${paddingClass}`}>
+          {index != null && (
+            <span className="mb-1 text-[10px] font-medium tracking-[0.2em] text-white/70 sm:text-xs">
+              {formatCardIndex(index)}
+            </span>
+          )}
+          <h3 className={`font-bold leading-snug text-white ${titleClass}`}>{article.title}</h3>
+        </div>
+      </Link>
+
+      <span
+        className={`pointer-events-none absolute z-20 flex items-center justify-center rounded-full bg-white text-brand-navy shadow-md transition-transform duration-300 group-hover:scale-105 ${btnSizeClass}`}
+        aria-hidden
+      >
+        <ArrowUpRight className={size === 'large' ? 'size-5' : 'size-4'} strokeWidth={2} />
+      </span>
+    </div>
   )
 }
 
@@ -167,52 +287,27 @@ function FeaturedPostLarge({
 
   return (
     <article>
-      <Link href={`/blogs/${article.id}`} className="group block overflow-hidden bg-gray-100">
-        <ArticleImage
-          src={article.imageUrl}
-          alt={article.title}
-          category={article.category}
-          className="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-        />
-      </Link>
-      <Link href={`/blogs/${article.id}`}>
-        <h3 className="mt-4 text-xl sm:text-2xl md:text-[1.65rem] font-bold text-brand-navy leading-snug hover:text-brand-red transition-colors">
-          {article.title}
-        </h3>
-      </Link>
+      <EditorialOverlayCard article={article} index={1} size="large" className="min-h-[320px] sm:min-h-[380px] lg:min-h-[420px]" />
       {showExcerpt && article.description && (
-        <p className="mt-3 text-sm sm:text-[15px] text-gray-600 leading-relaxed line-clamp-4">
+        <p className="mt-4 text-sm sm:text-[15px] text-brand-muted leading-relaxed line-clamp-3 px-1">
           {article.description}
         </p>
       )}
-      <p className="mt-4 text-[10px] sm:text-[11px] font-medium tracking-[0.08em] text-brand-muted uppercase">
-        {formatArticleMetaFull(article)}
-      </p>
+      {!showExcerpt && (
+        <p className="mt-4 px-1 text-[10px] font-medium tracking-[0.08em] text-brand-muted uppercase sm:text-[11px]">
+          {formatArticleMetaFull(article)}
+        </p>
+      )}
     </article>
   )
 }
 
-function GridPostCard({ article }: { article: NewsArticle }) {
+function GridPostCard({ article, index }: { article: NewsArticle; index: number }) {
   if (!article.id) return null
 
   return (
     <article>
-      <Link href={`/blogs/${article.id}`} className="group block overflow-hidden bg-gray-100">
-        <ArticleImage
-          src={article.imageUrl}
-          alt={article.title}
-          category={article.category}
-          className="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-        />
-      </Link>
-      <Link href={`/blogs/${article.id}`}>
-        <h4 className="mt-3 text-sm sm:text-[15px] font-bold text-brand-navy leading-snug line-clamp-3 hover:text-brand-red transition-colors">
-          {article.title}
-        </h4>
-      </Link>
-      <p className="mt-2 text-[10px] sm:text-[11px] font-medium tracking-[0.08em] text-brand-muted uppercase">
-        {formatArticleMetaShort(article)}
-      </p>
+      <EditorialOverlayCard article={article} index={index} size="small" className="min-h-[200px] sm:min-h-[220px]" />
     </article>
   )
 }
@@ -242,8 +337,7 @@ function CategorySplitRow({
 
   return (
     <section className="mb-14 sm:mb-16 last:mb-0">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
-        {/* Left — featured category */}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-8">
         {leftFeatured && (
           <div className={rightCategory && gridPosts.length > 0 ? 'lg:col-span-7' : 'lg:col-span-12'}>
             <CategoryLabel category={leftCategory} />
@@ -251,13 +345,12 @@ function CategorySplitRow({
           </div>
         )}
 
-        {/* Right — 2×2 grid */}
         {rightCategory && gridPosts.length > 0 && (
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-5 lg:border-l lg:border-tan lg:pl-8">
             <CategoryLabel category={rightCategory} />
-            <div className="grid grid-cols-2 gap-4 sm:gap-5">
-              {gridPosts.map((article) => (
-                <GridPostCard key={article.id} article={article} />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+              {gridPosts.map((article, i) => (
+                <GridPostCard key={article.id} article={article} index={i + 2} />
               ))}
             </div>
           </div>
@@ -269,76 +362,73 @@ function CategorySplitRow({
 
 function HorizontalListPost({
   article,
+  index,
   showExcerpt = true,
 }: {
   article: NewsArticle
+  index: number
   showExcerpt?: boolean
 }) {
   if (!article.id) return null
 
   return (
-    <article className="border-b border-tan py-9 sm:py-10 last:border-b-0">
-      <div className="flex flex-col md:flex-row md:items-stretch gap-5 md:gap-8 lg:gap-10">
-        <Link
-          href={`/blogs/${article.id}`}
-          className="group block w-full md:w-[44%] lg:w-[42%] md:max-w-[480px] shrink-0 overflow-hidden bg-gray-100"
-        >
-          <ArticleImage
-            src={article.imageUrl}
-            alt={article.title}
-            category={article.category}
-            className="w-full aspect-[4/3] object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+    <article className="mb-6 border-b border-tan pb-6 last:mb-0 last:border-b-0 last:pb-0">
+      <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-12 md:gap-6">
+        <div className="md:col-span-5">
+          <EditorialOverlayCard
+            article={article}
+            index={index}
+            size="medium"
+            className="min-h-[240px] sm:min-h-[260px] md:min-h-[280px]"
           />
-        </Link>
+        </div>
 
-        <div className="flex flex-1 min-w-0 flex-col md:py-1">
-          <Link href={`/blogs/${article.id}`} className="group/title">
-            <h3 className="text-xl sm:text-[1.35rem] lg:text-[1.5rem] font-bold text-brand-navy leading-snug group-hover/title:text-brand-red transition-colors">
+        <div className="flex flex-col justify-center md:col-span-7 md:py-2">
+          <Link href={`/blogs/${article.id}`} className="group/title md:hidden">
+            <h3 className="mb-3 text-lg font-bold leading-snug text-brand-navy group-hover/title:text-brand-red transition-colors line-clamp-2">
               {article.title}
             </h3>
           </Link>
 
           {showExcerpt && article.description && (
-            <p className="mt-4 text-sm sm:text-[15px] text-gray-600 leading-relaxed line-clamp-4">
+            <p className="text-sm leading-relaxed text-brand-muted line-clamp-4 sm:text-[15px]">
               {article.description}
             </p>
           )}
 
-          <p className="mt-5 md:mt-auto md:pt-6 text-[10px] sm:text-[11px] font-medium tracking-[0.08em] text-brand-muted uppercase">
+          <p className="mt-4 text-[10px] font-medium tracking-[0.08em] text-brand-muted uppercase sm:text-[11px]">
             {formatArticleMetaFull(article)}
           </p>
+
+          <Link
+            href={`/blogs/${article.id}`}
+            className="mt-4 inline-flex w-fit items-center gap-2 text-sm font-semibold text-brand-red transition-colors hover:text-brand-yellow-hover"
+          >
+            Read article
+            <ArrowUpRight className="size-4" strokeWidth={2} />
+          </Link>
         </div>
       </div>
     </article>
   )
 }
 
-function SidebarVerticalPost({ article }: { article: NewsArticle }) {
+function SidebarVerticalPost({ article, index }: { article: NewsArticle; index: number }) {
   if (!article.id) return null
 
   return (
-    <article className="mb-10 last:mb-0 pb-10 last:pb-0 border-b border-tan last:border-b-0">
-      <Link href={`/blogs/${article.id}`} className="group block overflow-hidden bg-gray-100 mb-4">
-        <ArticleImage
-          src={article.imageUrl}
-          alt={article.title}
-          category={article.category}
-          className="w-full aspect-[16/10] object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-        />
-      </Link>
-      <Link href={`/blogs/${article.id}`} className="group/title">
-        <h4 className="text-base sm:text-lg font-bold text-brand-navy leading-snug line-clamp-3 group-hover/title:text-brand-red transition-colors">
-          {article.title}
-        </h4>
-      </Link>
+    <article className="mb-4 last:mb-0">
+      <EditorialOverlayCard
+        article={article}
+        index={index}
+        size="medium"
+        className="min-h-[240px] sm:min-h-[260px]"
+      />
       {article.description && (
-        <p className="mt-3 text-sm text-gray-600 leading-relaxed line-clamp-3">
+        <p className="mt-3 line-clamp-2 px-1 text-sm leading-relaxed text-brand-muted">
           {article.description}
         </p>
       )}
-      <p className="mt-4 text-[10px] sm:text-[11px] font-medium tracking-[0.08em] text-brand-muted uppercase">
-        {formatArticleMetaFull(article)}
-      </p>
     </article>
   )
 }
@@ -366,26 +456,24 @@ function CategoryMagazineRow({
 
   return (
     <section className="mb-14 sm:mb-16 last:mb-0">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-8">
         {listPosts.length > 0 && (
           <div className={sidebarPosts.length > 0 ? 'lg:col-span-8' : 'lg:col-span-12'}>
             <CategoryLabel category={leftCategory} />
-            {listPosts.map((article) => (
-              <HorizontalListPost
-                key={article.id}
-                article={article}
-                showExcerpt
-              />
+            {listPosts.map((article, i) => (
+              <HorizontalListPost key={article.id} article={article} index={i + 1} showExcerpt />
             ))}
           </div>
         )}
 
         {rightCategory && sidebarPosts.length > 0 && (
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-4 lg:border-l lg:border-tan lg:pl-8">
             <CategoryLabel category={rightCategory} />
-            {sidebarPosts.map((article) => (
-              <SidebarVerticalPost key={article.id} article={article} />
-            ))}
+            <div className="space-y-4">
+              {sidebarPosts.map((article, i) => (
+                <SidebarVerticalPost key={article.id} article={article} index={listPosts.length + i + 1} />
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -434,12 +522,12 @@ export default function BlogCentricHome({ articles }: BlogCentricHomeProps) {
   const usedInSections = new Set<string>(heroIds)
 
   return (
-    <main className="bg-cream">
+    <main className="bg-white">
       {/* Bento hero — 5 featured posts */}
       <BentoHeroSection articles={featured} />
 
       {/* Main content — full width blog sections */}
-      <section className="home-section bg-white section-divider">
+      <section className="home-section bg-white border-t-0">
         <div className="home-container">
           <header className="text-center mb-10 sm:mb-12">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-brand-navy leading-tight">

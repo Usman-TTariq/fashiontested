@@ -23,11 +23,11 @@ export default function SeoContentSection() {
       <div className="home-container">
         <div className="max-w-4xl">
           <h2 className="home-section-title mb-4">
-            Favento is your place to save every day
+            FashionTested is your place to save every day
           </h2>
           <div className="space-y-4 text-sm sm:text-base text-brand-muted leading-relaxed">
             <p>
-              Welcome to Favento — your trusted destination for verified coupon codes,
+              Welcome to FashionTested — your trusted destination for verified coupon codes,
               exclusive promo deals, and savings from hundreds of top online retailers. We help
               smart shoppers find the best discounts on fashion, electronics, travel, home goods,
               and more.
@@ -35,7 +35,7 @@ export default function SeoContentSection() {
             <p>
               Every coupon on our site is checked and updated regularly so you can shop with
               confidence. Whether you&apos;re looking for percentage-off codes, free shipping offers,
-              or limited-time deals, Favento makes it easy to save on every purchase.
+              or limited-time deals, FashionTested makes it easy to save on every purchase.
             </p>
           </div>
         </div>

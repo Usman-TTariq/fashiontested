@@ -197,7 +197,7 @@ export default function Testimonials() {
 
                                                 {/* Decorative Corner */}
                                                 {isCenter && (
-                                                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#C7395F]/10 to-transparent rounded-bl-full rounded-tr-2xl"></div>
+                                                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-brand-red/10 to-transparent rounded-bl-full rounded-tr-2xl"></div>
                                                 )}
                                             </div>
                                         </motion.div>
@@ -208,10 +208,10 @@ export default function Testimonials() {
                             {/* Navigation Buttons */}
                             <button
                                 onClick={prevTestimonial}
-                                className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-[#C7395F] group z-20"
+                                className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-brand-red group z-20"
                                 aria-label="Previous testimonial"
                             >
-                                <ChevronLeft className="w-6 h-6 text-gray-600 group-hover:text-[#C7395F] transition-colors" />
+                                <ChevronLeft className="w-6 h-6 text-gray-600 group-hover:text-brand-red transition-colors" />
                             </button>
 
                             <button
@@ -264,7 +264,7 @@ export default function Testimonials() {
 
                                         {/* Author */}
                                         <div className="flex items-center gap-4 relative">
-                                            <div className="w-14 h-14 bg-gradient-to-br from-[#C7395F] to-[#d45678] rounded-full flex items-center justify-center text-2xl shadow-md">
+                                            <div className="w-14 h-14 bg-gradient-to-br from-brand-red to-brand-red rounded-full flex items-center justify-center text-2xl shadow-md">
                                                 {currentTestimonial.avatar}
                                             </div>
                                             <div>
@@ -278,7 +278,7 @@ export default function Testimonials() {
                                         </div>
 
                                         {/* Decorative Corner */}
-                                        <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#C7395F]/10 to-transparent rounded-bl-full rounded-tr-2xl"></div>
+                                        <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-brand-red/10 to-transparent rounded-bl-full rounded-tr-2xl"></div>
                                     </div>
                                 </motion.div>
                             </AnimatePresence>
@@ -294,7 +294,7 @@ export default function Testimonials() {
 
                             <button
                                 onClick={nextTestimonial}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-gradient-to-br from-[#C7395F] to-[#d45678] rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300 z-20"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-gradient-to-br from-brand-red to-brand-red rounded-full shadow-lg flex items-center justify-center hover:shadow-xl transition-all duration-300 z-20"
                                 aria-label="Next testimonial"
                             >
                                 <ChevronRight className="w-5 h-5 text-white" />
