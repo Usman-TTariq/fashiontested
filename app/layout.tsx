@@ -46,14 +46,6 @@ export const metadata: Metadata = {
   alternates: {
     canonical: siteConfig.url,
   },
-  icons: {
-    icon: {
-      url: siteConfig.favicon,
-      type: 'image/svg+xml',
-    },
-    apple: siteConfig.favicon,
-    shortcut: siteConfig.favicon,
-  },
   viewport: {
     width: 'device-width',
     initialScale: 1,

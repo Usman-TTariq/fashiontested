@@ -115,7 +115,7 @@ function Pagination({
                 onClick={() => go(page)}
                 className={`min-w-[2.5rem] px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
                   currentPage === page
-                    ? 'bg-brand-navy text-brand-cyan shadow-sm'
+                    ? 'bg-brand-red text-white shadow-sm'
                     : 'bg-white border border-tan text-brand-navy hover:border-brand-navy/40'
                 }`}
               >
@@ -128,7 +128,7 @@ function Pagination({
           type="button"
           onClick={() => go(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="inline-flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-semibold bg-brand-navy text-brand-cyan disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-navy-dark transition-colors"
+          className="inline-flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-semibold bg-brand-red text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-yellow-hover transition-colors"
         >
           Next
           <ChevronRight className="w-4 h-4" />
@@ -449,7 +449,7 @@ function CouponsContent() {
                 onClick={() => setActiveTab('coupons')}
                 className={`px-5 py-2.5 rounded-lg text-sm font-bold transition-colors ${
                   activeTab === 'coupons'
-                    ? 'bg-brand-navy text-brand-cyan shadow-sm'
+                    ? 'bg-brand-red text-white shadow-sm'
                     : 'text-brand-navy hover:bg-cream'
                 }`}
               >
@@ -460,7 +460,7 @@ function CouponsContent() {
                 onClick={() => setActiveTab('stores')}
                 className={`px-5 py-2.5 rounded-lg text-sm font-bold transition-colors ${
                   activeTab === 'stores'
-                    ? 'bg-brand-navy text-brand-cyan shadow-sm'
+                    ? 'bg-brand-red text-white shadow-sm'
                     : 'text-brand-navy hover:bg-cream'
                 }`}
               >
@@ -507,7 +507,7 @@ function CouponsContent() {
                   onClick={() => setSelectedCategory('')}
                   className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                     selectedCategory === ''
-                      ? 'bg-brand-navy text-brand-cyan'
+                      ? 'bg-brand-red text-white'
                       : 'bg-cream border border-tan text-brand-navy'
                   }`}
                 >
@@ -520,7 +520,7 @@ function CouponsContent() {
                     onClick={() => setSelectedCategory(category.id || '')}
                     className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                       selectedCategory === category.id
-                        ? 'bg-brand-navy text-brand-cyan'
+                        ? 'bg-brand-red text-white'
                         : 'bg-cream border border-tan text-brand-navy'
                     }`}
                   >

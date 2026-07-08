@@ -845,12 +845,12 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
             <Link href="/stores" className="flex items-center gap-1.5 hover:opacity-80 transition-opacity font-semibold tracking-wide">
               <MapPin className="w-3.5 h-3.5" /> Find a Store
             </Link>
-            <div className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity group relative font-semibold tracking-wide">
+            {/* <div className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity group relative font-semibold tracking-wide">
               USD ($) <ChevronDown className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform" />
-            </div>
+            </div> */}
           </div>
 
-          <div className="flex-1 flex justify-center items-center gap-3">
+          {/* <div className="flex-1 flex justify-center items-center gap-3">
             <button onClick={() => setPromoIndex((prev) => (prev - 1 + promotions.length) % promotions.length)} className="hover:opacity-70 transition-opacity"><ChevronLeft className="w-4 h-4" /></button>
             <AnimatePresence mode="wait">
               <motion.span key={promoIndex} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="font-bold tracking-wider text-center min-w-[200px]">
@@ -858,14 +858,14 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
               </motion.span>
             </AnimatePresence>
             <button onClick={() => setPromoIndex((prev) => (prev + 1) % promotions.length)} className="hover:opacity-70 transition-opacity"><ChevronRight className="w-4 h-4" /></button>
-          </div>
+          </div> */}
 
-          <div className="hidden md:flex items-center gap-3">
+          {/* <div className="hidden md:flex items-center gap-3">
             <a href="#" className="hover:opacity-70 transition-opacity"><Facebook className="w-3.5 h-3.5" /></a>
             <a href="#" className="hover:opacity-70 transition-opacity"><Twitter className="w-3.5 h-3.5" /></a>
             <a href="#" className="hover:opacity-70 transition-opacity"><Instagram className="w-3.5 h-3.5" /></a>
             <a href="#" className="hover:opacity-70 transition-opacity"><Youtube className="w-3.5 h-3.5" /></a>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -924,12 +924,12 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <button className="hidden sm:block hover:text-brand-red transition-colors"><Moon className="w-5 h-5" /></button>
+                {/* <button className="hidden sm:block hover:text-brand-red transition-colors"><Moon className="w-5 h-5" /></button> */}
                 <Link href="/favorites" className="relative hover:text-brand-red transition-colors">
                   <Heart className="w-5 h-5" />
                   {favoritesCount > 0 && <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-brand-cyan rounded-full"></span>}
                 </Link>
-                <Link href="/profile" className="hover:text-brand-red transition-colors"><User className="w-5 h-5" /></Link>
+                {/* <Link href="/profile" className="hover:text-brand-red transition-colors"><User className="w-5 h-5" /></Link> */}
                 <button className="lg:hidden p-1 ml-1 text-white" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>{mobileMenuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}</button>
               </div>
             </div>
@@ -960,10 +960,10 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
                 </div>
               ))}
             </div>
-            <div className="flex items-center gap-6">
+            {/* <div className="flex items-center gap-6">
               <Link href="/submit-coupon" className="text-[13px] font-bold text-gray-600 hover:text-brand-red transition-colors uppercase tracking-wide">Submit Coupon</Link>
               <Link href="/support" className="text-[13px] font-bold text-gray-600 hover:text-brand-red transition-colors uppercase tracking-wide">Support & FAQs</Link>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

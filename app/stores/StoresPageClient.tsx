@@ -163,7 +163,7 @@ function Pagination({
                 onClick={() => go(page)}
                 className={`min-w-[2.5rem] px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
                   currentPage === page
-                    ? 'bg-brand-navy text-brand-cyan shadow-sm'
+                    ? 'bg-brand-red text-white shadow-sm'
                     : 'bg-white border border-tan text-brand-navy hover:border-brand-navy/40'
                 }`}
               >
@@ -176,7 +176,7 @@ function Pagination({
           type="button"
           onClick={() => go(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="inline-flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-semibold bg-brand-navy text-brand-cyan disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-navy-dark transition-colors"
+          className="inline-flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-semibold bg-brand-red text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-yellow-hover transition-colors"
         >
           Next
           <ChevronRight className="w-4 h-4" />
@@ -370,7 +370,7 @@ export default function StoresPage() {
                 onClick={() => setShowTrendingOnly((v) => !v)}
                 className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border transition-colors ${
                   showTrendingOnly
-                    ? 'bg-brand-navy text-brand-cyan border-brand-navy'
+                    ? 'bg-brand-red text-white border-brand-red'
                     : 'bg-white text-brand-navy border-tan hover:border-brand-navy/30'
                 }`}
               >

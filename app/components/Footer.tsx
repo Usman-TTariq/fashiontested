@@ -192,7 +192,7 @@ export default function Footer({ blogData }: FooterProps) {
           {siteConfig.tagline}
         </p>
 
-        <div className="flex items-center justify-center gap-4 mb-8">
+        {/* <div className="flex items-center justify-center gap-4 mb-8">
           {[
             { Icon: Facebook, label: 'Facebook' },
             { Icon: Twitter, label: 'Twitter' },
@@ -207,7 +207,7 @@ export default function Footer({ blogData }: FooterProps) {
               <Icon className="w-5 h-5" />
             </a>
           ))}
-        </div>
+        </div> */}
 
         <div className="px-4 mb-8">
           <FooterNewsletterInline />

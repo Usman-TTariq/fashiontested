@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -7,11 +7,12 @@ import { getStoreById, getStoreBySlug, Store, getStores } from '@/lib/services/s
 import { getCouponsByStoreId, Coupon } from '@/lib/services/couponService';
 import { sortCouponsByOrder } from '@/lib/utils/couponOrder';
 import { toJsDate } from '@/lib/utils/date';
-import { getCouponDisplayTitle } from '@/lib/utils/couponDisplay';
 import Navbar from '@/app/components/Navbar';
 import CouponPopup from '@/app/components/CouponPopup';
 import Breadcrumbs from '@/app/components/Breadcrumbs';
-import { ExternalLink, Tag, CheckCircle, Calendar, Copy, Star, ArrowRight } from 'lucide-react';
+import StoreCouponCard from '@/app/components/stores/StoreCouponCard';
+import StorePageSidebar from '@/app/components/stores/StorePageSidebar';
+import { ExternalLink, Tag, CheckCircle, Star } from 'lucide-react';
 
 // Helper function to get favicon URL from store data
 const getStoreFaviconUrl = (store: Store): string => {
@@ -168,24 +169,20 @@ export default function StorePageClient({
     setSelectedCoupon(null);
   };
 
-  const formatDate = (timestamp: any) => {
+  const formatDate = (timestamp: unknown) => {
     if (!timestamp) return null;
     try {
-      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      const date =
+        typeof timestamp === 'object' &&
+        timestamp !== null &&
+        'toDate' in timestamp &&
+        typeof (timestamp as { toDate: () => Date }).toDate === 'function'
+          ? (timestamp as { toDate: () => Date }).toDate()
+          : new Date(timestamp as string);
       return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    } catch (error) {
+    } catch {
       return null;
     }
-  };
-
-  const getLastTwoDigits = (coupon: Coupon): string | null => {
-    if ((coupon.couponType || 'deal') === 'code' && coupon.code) {
-      const code = coupon.code.trim();
-      if (code.length >= 2) {
-        return code.slice(-2);
-      }
-    }
-    return null;
   };
 
   // Get related stores (exclude current store)
@@ -213,7 +210,7 @@ export default function StorePageClient({
           <div className="text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">Store Not Found</h1>
             <p className="text-gray-600 mb-6">The store you're looking for doesn't exist.</p>
-            <Link href="/stores" className="inline-block px-6 py-3 bg-gradient-to-r from-brand-red to-brand-red text-white rounded-lg hover:shadow-lg transition-all">
+            <Link href="/stores" className="btn-cta px-6 py-3 text-sm">
               Browse All Stores
             </Link>
           </div>
@@ -221,6 +218,17 @@ export default function StorePageClient({
       </div>
     );
   }
+
+  const storeDisplayName = store.subStoreName || store.name;
+  const lastUpdatedLabel =
+    formatDate(
+      coupons.reduce<string | null>((latest, c) => {
+        const d = c.updatedAt || c.createdAt;
+        if (!d) return latest;
+        if (!latest || new Date(d) > new Date(latest)) return d;
+        return latest;
+      }, null)
+    ) || formatDate(store.createdAt);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-cyan/10 via-white to-brand-cyan/15">
@@ -235,6 +243,7 @@ export default function StorePageClient({
       {/* Breadcrumbs */}
       <div className="relative z-10">
         <Breadcrumbs
+          className="[&>div]:py-1.5 sm:[&>div]:py-3"
           items={[
             { label: 'Stores', href: '/stores' },
             { label: store?.name || 'Store Details' }
@@ -242,314 +251,139 @@ export default function StorePageClient({
         />
       </div>
 
-      {/* Store Header Section */}
-      <div className="relative w-full py-12 sm:py-16 md:py-20">
+      {/* Compact hero */}
+      <div className="relative w-full py-4 sm:py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
-            {/* Store Logo */}
-            <motion.div
-              className="flex-shrink-0"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-            >
-              <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 bg-white rounded-2xl shadow-xl p-6 flex items-center justify-center border border-gray-100">
+          <motion.div
+            className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 bg-gray-50 rounded-xl border border-gray-100 p-2 flex items-center justify-center mx-auto sm:mx-0">
                 <img
                   src={store.logoUrl || getStoreFaviconUrl(store)}
-                  alt={store.name}
+                  alt={storeDisplayName}
                   className="max-w-full max-h-full object-contain"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    const faviconUrl = getStoreFaviconUrl(store);
-                    // If logoUrl failed, try favicon
-                    if (target.src !== faviconUrl && store.logoUrl) {
-                      target.src = faviconUrl;
-                    } else {
-                      // If both failed, show gradient fallback
-                      const parent = target.parentElement;
-                      if (parent) {
-                        target.style.display = 'none';
-                        const fallback = document.createElement('div');
-                        fallback.className = 'w-full h-full bg-gradient-to-br from-brand-red to-brand-red rounded-xl flex items-center justify-center';
-                        fallback.innerHTML = `<span class="text-white font-bold text-4xl">${store.name.charAt(0).toUpperCase()}</span>`;
-                        parent.appendChild(fallback);
-                      }
-                    }
-                  }}
                 />
               </div>
-            </motion.div>
-
-            {/* Store Info */}
-            <div className="flex-1 text-center sm:text-left">
-              <motion.h1
-                className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-              >
-                <span className="bg-gradient-to-r from-brand-red to-brand-red bg-clip-text text-transparent">
-                  {store.subStoreName || store.name}
-                </span>
-              </motion.h1>
-
-              {store.description && (
-                <motion.p
-                  className="text-gray-600 text-base sm:text-lg max-w-2xl mb-4"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.1 }}
-                >
-                  {store.description}
-                </motion.p>
-              )}
-
-              <motion.div
-                className="flex flex-wrap items-center justify-center sm:justify-start gap-3"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-              >
-                <div className="flex items-center gap-1.5 bg-brand-cyan/15 text-brand-navy-dark px-3 py-1.5 rounded-full text-sm font-medium">
-                  <CheckCircle className="w-4 h-4" />
-                  <span>Verified Store</span>
+              <div className="flex-1 text-center sm:text-left min-w-0">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 leading-tight mb-1">
+                  <span className="text-brand-red">{storeDisplayName}</span> Discount Codes
+                </h1>
+                <p className="text-sm text-gray-600 mb-3">
+                  {coupons.length} verified offer{coupons.length !== 1 ? 's' : ''}
+                  {lastUpdatedLabel ? ` · Updated ${lastUpdatedLabel}` : ''}
+                </p>
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                  <span className="inline-flex items-center gap-1 bg-brand-cyan/15 text-gray-800 px-2.5 py-1 rounded-full text-xs font-semibold">
+                    <CheckCircle className="w-3.5 h-3.5 text-brand-red" />
+                    Verified Store
+                  </span>
+                  <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full text-xs font-semibold">
+                    <Tag className="w-3.5 h-3.5" />
+                    {coupons.length} Active Offers
+                  </span>
+                  <span className="inline-flex items-center gap-0.5 text-yellow-500 text-xs font-semibold text-gray-700">
+                    <Star className="w-3.5 h-3.5 fill-current" />
+                    4.9
+                  </span>
                 </div>
-                <div className="flex items-center gap-1.5 bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full text-sm font-medium">
-                  <Tag className="w-4 h-4" />
-                  <span>{coupons.length} Active Offers</span>
-                </div>
-                <div className="flex items-center gap-1 text-yellow-500">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-current" />
-                  ))}
-                  <span className="text-gray-600 text-sm ml-1">(4.9)</span>
-                </div>
-              </motion.div>
-
-
-              <motion.a
+              </div>
+              <a
                 href={store.trackingLink || store.trackingUrl || store.websiteUrl || '#'}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 mt-4 px-6 py-3 bg-gradient-to-r from-brand-red to-brand-red text-white rounded-lg hover:shadow-xl transition-all duration-300 hover:scale-105 font-semibold"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                onClick={() => {
-                  console.log('Visit Store clicked');
-                  console.log('Using URL:', store.trackingLink || store.trackingUrl || store.websiteUrl || 'No URL available');
-                }}
+                className="btn-cta shrink-0 w-full sm:w-auto justify-center py-2.5 px-5 text-sm"
               >
-                <ExternalLink className="w-5 h-5" />
+                <ExternalLink className="w-4 h-4" />
                 Visit Store
-              </motion.a>
+              </a>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
 
-      {/* Coupons Section */}
-      <div className="relative w-full px-4 sm:px-6 lg:px-8 py-12">
+      {/* Main + sidebar */}
+      <div className="relative w-full px-4 sm:px-6 lg:px-8 pb-10">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <h2 className="text-3xl md:text-4xl font-bold mb-2">
-              Available <span className="bg-gradient-to-r from-brand-red to-brand-red bg-clip-text text-transparent">Coupons</span>
-            </h2>
-            <p className="text-gray-600">
-              {coupons.length > 0
-                ? `Found ${coupons.length} active coupon${coupons.length !== 1 ? 's' : ''}`
-                : 'No active coupons available at the moment'}
-            </p>
+          <div className="lg:grid lg:grid-cols-[1fr_300px] xl:grid-cols-[1fr_320px] lg:gap-8 lg:items-start">
+            {/* Coupons column */}
+            <div className="min-w-0">
+              <div className="mb-4 sm:mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
+                  Available <span className="text-brand-red">Coupons</span>
+                </h2>
+                <p className="text-gray-600 text-sm hidden md:block">
+                  {coupons.length > 0
+                    ? `${coupons.length} hand-tested offer${coupons.length !== 1 ? 's' : ''} — discount shown first`
+                    : 'No active coupons available at the moment'}
+                </p>
+                <p className="text-gray-600 text-sm md:hidden">
+                  {coupons.length > 0
+                    ? `Found ${coupons.length} active coupon${coupons.length !== 1 ? 's' : ''}`
+                    : 'No active coupons available at the moment'}
+                </p>
+              </div>
+
+              {coupons.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-2xl border border-gray-200 shadow-sm">
+                  <p className="text-gray-500 text-lg mb-4">No coupons available for this store right now.</p>
+                  <Link href="/stores" className="btn-cta px-6 py-2.5 text-sm">
+                    Browse Other Stores
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-2 md:space-y-3">
+                  {coupons.map((coupon, index) => {
+                    const expiry = toJsDate(coupon.expiryDate);
+                    const isExpired = expiry ? expiry < new Date() : false;
+                    const isFeatured = index === 0 || Boolean(coupon.isPopular);
+
+                    return (
+                      <motion.div
+                        key={coupon.id}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.35, delay: index * 0.04 }}
+                      >
+                        <StoreCouponCard
+                          coupon={coupon}
+                          storeName={storeDisplayName}
+                          logoUrl={coupon.logoUrl || getStoreFaviconUrl(store)}
+                          logoFallback={storeDisplayName.charAt(0).toUpperCase()}
+                          isExpired={isExpired}
+                          isFeatured={isFeatured}
+                          copiedCode={copiedCode}
+                          onActivate={() => !isExpired && handleCouponClick(coupon)}
+                        />
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Sidebar — desktop right; mobile below coupons */}
+            <div className="mt-8 lg:mt-0">
+              <StorePageSidebar
+                store={store}
+                coupons={coupons}
+                allStores={allStores}
+                relatedStores={relatedStores}
+                getLogoUrl={getStoreFaviconUrl}
+              />
+            </div>
           </div>
-
-          {coupons.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-2xl shadow-md">
-              <p className="text-gray-500 text-lg mb-4">No coupons available for this store right now.</p>
-              <Link href="/stores" className="inline-block px-6 py-3 bg-gradient-to-r from-brand-red to-brand-red text-white rounded-lg hover:shadow-lg transition-all">
-                Browse Other Stores
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {coupons.map((coupon, index) => {
-                const expiry = toJsDate(coupon.expiryDate);
-                const isExpired = expiry ? expiry < new Date() : false;
-
-                const logoUrl = coupon.logoUrl || (store ? getStoreFaviconUrl(store) : '');
-                const title = getCouponDisplayTitle(coupon);
-
-                return (
-                  <motion.div
-                    key={coupon.id}
-                    className="group bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 hover:border-brand-red flex items-center gap-4 cursor-pointer"
-                    onClick={() => !isExpired && handleCouponClick(coupon)}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: index * 0.05 }}
-                  >
-                    {/* Logo */}
-                    <div className="flex-shrink-0">
-                      {logoUrl ? (
-                        <div className="w-16 h-16 rounded-lg flex items-center justify-center overflow-hidden bg-gray-50">
-                          <img
-                            src={logoUrl}
-                            alt={title}
-                            className="w-full h-full object-contain"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              const parent = target.parentElement;
-                              if (parent) {
-                                const initial = (store?.name || title).charAt(0).toUpperCase() || '?';
-                                parent.innerHTML = `<div class="w-16 h-16 rounded-lg bg-gradient-to-br from-brand-red to-brand-red flex items-center justify-center"><span class="text-xl font-bold text-white">${initial}</span></div>`;
-                              }
-                            }}
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-brand-red to-brand-red flex items-center justify-center">
-                          <span className="text-xl font-bold text-white">
-                            {(store?.name || title).charAt(0).toUpperCase() || '?'}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Title + subtitle */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-bold text-gray-900 mb-1 line-clamp-1">
-                        {title}
-                      </h3>
-                      <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
-                        <div className="flex items-center gap-1 text-brand-navy">
-                          <CheckCircle className="w-3 h-3" />
-                          <span>Verified</span>
-                        </div>
-                        {coupon.expiryDate && (
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            <span>{formatDate(coupon.expiryDate) || '31 Dec, 2025'}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Get Code / Get Deal */}
-                    <div className="flex-shrink-0">
-                      {isExpired ? (
-                        <div className="bg-red-100 text-red-700 text-xs font-semibold px-4 py-2 rounded">
-                          Expired
-                        </div>
-                      ) : (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCouponClick(coupon);
-                          }}
-                          className="group/btn relative bg-gradient-to-r from-brand-red to-brand-red border-2 border-dashed border-white/60 rounded-lg px-6 py-3 text-white font-semibold hover:shadow-lg transition-all duration-300 whitespace-nowrap flex items-center gap-2"
-                        >
-                          {coupon.couponType === 'code' ? (
-                            <>
-                              <Copy className="w-4 h-4" />
-                              {copiedCode === coupon.code ? 'Copied!' : (coupon.getCodeText || 'Get Code')}
-                            </>
-                          ) : (
-                            <>
-                              <ExternalLink className="w-4 h-4" />
-                              {coupon.getDealText || 'Get Deal'}
-                            </>
-                          )}
-                          {getLastTwoDigits(coupon) && (
-                            <span className="hidden sm:inline text-xs opacity-80 border-l border-white/40 pl-2">
-                              ...{getLastTwoDigits(coupon)}
-                            </span>
-                          )}
-                        </button>
-                      )}
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Related Stores Section */}
-      {relatedStores.length > 0 && (
-        <div className="relative w-full px-4 sm:px-6 lg:px-8 py-12">
-          <div className="max-w-7xl mx-auto">
-            <div className="mb-8">
-              <h2 className="text-3xl md:text-4xl font-bold mb-2">
-                Related <span className="bg-gradient-to-r from-brand-red to-brand-red bg-clip-text text-transparent">Stores</span>
-              </h2>
-              <p className="text-gray-600">Discover more amazing deals from similar stores</p>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {relatedStores.map((relatedStore, index) => (
-                <Link
-                  key={relatedStore.id}
-                  href={`/stores/${relatedStore.slug || relatedStore.id}`}
-                  className="group"
-                >
-                  <motion.div
-                    className="bg-white rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-brand-red/30 text-center"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.05 }}
-                    whileHover={{ y: -5 }}
-                  >
-                    <div className="w-16 h-16 mx-auto mb-3 rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center">
-                      <img
-                        src={relatedStore.logoUrl || getStoreFaviconUrl(relatedStore)}
-                        alt={relatedStore.name}
-                        className="max-w-full max-h-full object-contain p-2"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          const faviconUrl = getStoreFaviconUrl(relatedStore);
-                          // If logoUrl failed, try favicon
-                          if (target.src !== faviconUrl && relatedStore.logoUrl) {
-                            target.src = faviconUrl;
-                          } else {
-                            // If both failed, show gradient fallback
-                            const parent = target.parentElement;
-                            if (parent) {
-                              target.style.display = 'none';
-                              const fallback = document.createElement('div');
-                              fallback.className = 'w-16 h-16 rounded-lg bg-gradient-to-br from-brand-red to-brand-red flex items-center justify-center';
-                              fallback.innerHTML = `<span class="text-white font-bold text-xl">${relatedStore.name.charAt(0)}</span>`;
-                              parent.appendChild(fallback);
-                            }
-                          }
-                        }}
-                      />
-                    </div>
-                    <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-brand-red transition-colors">
-                      {relatedStore.name}
-                    </h3>
-                  </motion.div>
-                </Link>
-              ))}
-            </div>
-
-            <div className="text-center mt-8">
-              <Link
-                href="/stores"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-brand-red text-brand-red rounded-lg hover:bg-brand-red hover:text-white transition-all duration-300 font-semibold"
-              >
-                View All Stores
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Back to Stores Link */}
+      {/* Back to Stores */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <Link
           href="/stores"
-          className="inline-flex items-center gap-2 text-brand-red hover:text-brand-red font-semibold transition-colors"
+          className="inline-flex items-center gap-2 text-brand-red hover:underline font-semibold text-sm transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
