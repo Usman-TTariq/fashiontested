@@ -3,10 +3,38 @@ import { createClient } from '@/lib/supabase/client'
 export interface Category {
   id?: string
   name: string
+  slug?: string
   logoUrl?: string
   backgroundColor: string
   createdAt?: string
   updatedAt?: string
+}
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+export function slugifyCategoryName(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+}
+
+export function getCategorySlug(category: Pick<Category, 'name' | 'slug'>): string {
+  return category.slug || slugifyCategoryName(category.name)
+}
+
+export function getCategoryPath(category: Pick<Category, 'name' | 'slug'>): string {
+  return `/categories/${getCategorySlug(category)}`
+}
+
+function mapCategoryRow(item: Record<string, unknown>): Category {
+  const name = String(item.name ?? '')
+  return {
+    id: item.id as string | undefined,
+    name,
+    slug: (item.slug as string | undefined) || slugifyCategoryName(name),
+    logoUrl: (item.icon_url as string | undefined),
+    backgroundColor: (item.background_color as string | undefined) || '#000000',
+    createdAt: item.created_at as string | undefined,
+    updatedAt: item.updated_at as string | undefined,
+  }
 }
 
 const supabase = createClient()
@@ -103,7 +131,7 @@ export async function createCategory(
     const insertData: any = {
       name,
       icon_url: finalLogoUrl,
-      slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      slug: slugifyCategoryName(name),
     }
 
     // Only add background_color if provided
@@ -181,14 +209,7 @@ export async function getCategories(): Promise<Category[]> {
       return []
     }
 
-    return (data || []).map((item: any) => ({
-      id: item.id,
-      name: item.name,
-      logoUrl: item.icon_url,
-      backgroundColor: item.background_color || '#000000',
-      createdAt: item.created_at,
-      updatedAt: item.updated_at,
-    }))
+    return (data || []).map((item: any) => mapCategoryRow(item))
   } catch (error) {
     console.error('Error getting categories:', error)
     return []
@@ -208,16 +229,48 @@ export async function getCategoryById(id: string): Promise<Category | null> {
       return null
     }
 
-    return {
-      id: data.id,
-      name: data.name,
-      logoUrl: data.icon_url,
-      backgroundColor: data.background_color || '#000000',
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-    }
+    return mapCategoryRow(data)
   } catch (error) {
     console.error('Error getting category:', error)
+    return null
+  }
+}
+
+export async function getCategoryBySlug(slugOrId: string): Promise<Category | null> {
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('slug', slugOrId)
+      .maybeSingle()
+
+    if (data) {
+      return mapCategoryRow(data)
+    }
+
+    if (UUID_REGEX.test(slugOrId)) {
+      return getCategoryById(slugOrId)
+    }
+
+    if (error) {
+      console.error('Error getting category by slug:', error)
+    }
+
+    const { data: allCategories, error: listError } = await supabase
+      .from('categories')
+      .select('*')
+
+    if (listError || !allCategories) {
+      return null
+    }
+
+    const match = allCategories.find(
+      (item: any) => slugifyCategoryName(item.name) === slugOrId || item.slug === slugOrId
+    )
+
+    return match ? mapCategoryRow(match) : null
+  } catch (error) {
+    console.error('Error getting category by slug:', error)
     return null
   }
 }
@@ -275,7 +328,10 @@ export async function updateCategory(
 
     const updateData: any = {}
 
-    if (updates.name) updateData.name = updates.name
+    if (updates.name) {
+      updateData.name = updates.name
+      updateData.slug = slugifyCategoryName(updates.name)
+    }
     if (logoUrl !== undefined) updateData.icon_url = logoUrl
     if (updates.backgroundColor) updateData.background_color = updates.backgroundColor
 

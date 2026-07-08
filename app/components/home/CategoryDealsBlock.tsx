@@ -33,7 +33,7 @@ export default function CategoryDealsBlock({ category, title }: CategoryDealsBlo
       <div className="flex items-end justify-between gap-4 mb-6">
         <h3 className="home-section-title text-xl sm:text-2xl">{title}</h3>
         <Link
-          href={`/categories/${category.id}`}
+          href={`/categories/${category.slug || category.id}`}
           className="text-sm font-semibold text-brand-navy hover:text-brand-red transition-colors shrink-0"
         >
           See all →

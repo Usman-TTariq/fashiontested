@@ -93,7 +93,7 @@ export default function ShopByCategory() {
                         return (
                             <Link
                                 key={cat.id}
-                                href={`/categories/${cat.id}`}
+                                href={`/categories/${cat.slug || cat.id}`}
                                 className="flex flex-col items-center gap-3 min-w-[90px] snap-start group cursor-pointer"
                             >
                                 <motion.div

@@ -102,7 +102,7 @@ export default function CategoriesGrid() {
                         {row1.map((category) => (
                           <Link
                             key={category.id}
-                            href={`/categories/${category.id}`}
+                            href={`/categories/${category.slug || category.id}`}
                             className="flex flex-col items-center gap-2 p-2 rounded-xl hover:bg-gradient-to-br hover:from-brand-red/10 hover:to-brand-red/15 transition-all duration-300 group"
                           >
                             <div
@@ -145,7 +145,7 @@ export default function CategoriesGrid() {
                         {row2.map((category) => (
                           <Link
                             key={category.id}
-                            href={`/categories/${category.id}`}
+                            href={`/categories/${category.slug || category.id}`}
                             className="flex flex-col items-center gap-2 p-2 rounded-xl hover:bg-gradient-to-br hover:from-brand-red/10 hover:to-brand-red/15 transition-all duration-300 group"
                           >
                             <div
@@ -188,7 +188,7 @@ export default function CategoriesGrid() {
                         {row3.map((category) => (
                           <Link
                             key={category.id}
-                            href={`/categories/${category.id}`}
+                            href={`/categories/${category.slug || category.id}`}
                             className="flex flex-col items-center gap-2 p-2 rounded-xl hover:bg-gradient-to-br hover:from-brand-red/10 hover:to-brand-red/15 transition-all duration-300 group"
                           >
                             <div
@@ -237,7 +237,7 @@ export default function CategoriesGrid() {
             {categories.map((category) => (
               <Link
                 key={category.id}
-                href={`/categories/${category.id}`}
+                href={`/categories/${category.slug || category.id}`}
                 className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl hover:bg-gradient-to-r hover:from-brand-red/10 hover:to-brand-red/15 transition-all duration-300 group transform hover:scale-105 hover:shadow-lg"
               >
                 <div

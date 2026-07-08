@@ -62,7 +62,7 @@ export default function SeoContentSection() {
               {categories.map((cat) => (
                 <li key={cat.id}>
                   <Link
-                    href={`/categories/${cat.id}`}
+                    href={`/categories/${cat.slug || cat.id}`}
                     className="text-sm text-brand-muted hover:text-brand-red transition-colors"
                   >
                     {cat.name} Deals

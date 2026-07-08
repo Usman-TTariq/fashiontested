@@ -1,7 +1,8 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
-import { getCategoryById, Category } from '@/lib/services/categoryService';
+import Link from 'next/link';
+import { getCategoryBySlug, Category } from '@/lib/services/categoryService';
 import { getStoresByCategoryId, Store } from '@/lib/services/storeService';
 import { getCouponsByCategoryId, Coupon } from '@/lib/services/couponService';
 import { addNotification } from '@/lib/services/notificationsService';
@@ -12,7 +13,7 @@ import { Tag, CheckCircle, Calendar, ExternalLink, ArrowRight, Info } from 'luci
 import { getCouponDisplayTitle } from '@/lib/utils/couponDisplay';
 
 export default function CategoryPageClient({ params }: { params: { id: string } }) {
-  const categoryId = params.id;
+  const categorySlug = params.id;
 
   const [category, setCategory] = useState<Category | null>(null);
   const [stores, setStores] = useState<Store[]>([]);
@@ -26,13 +27,20 @@ export default function CategoryPageClient({ params }: { params: { id: string } 
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [categoryData, storesData, couponsData] = await Promise.all([
-          getCategoryById(categoryId),
-          getStoresByCategoryId(categoryId),
-          getCouponsByCategoryId(categoryId),
+        const categoryData = await getCategoryBySlug(categorySlug);
+        setCategory(categoryData);
+
+        if (!categoryData?.id) {
+          setStores([]);
+          setCoupons([]);
+          return;
+        }
+
+        const [storesData, couponsData] = await Promise.all([
+          getStoresByCategoryId(categoryData.id),
+          getCouponsByCategoryId(categoryData.id),
         ]);
 
-        setCategory(categoryData);
         setStores(storesData);
         setCoupons(couponsData);
       } catch (error) {
@@ -42,10 +50,10 @@ export default function CategoryPageClient({ params }: { params: { id: string } 
       }
     };
 
-    if (categoryId) {
+    if (categorySlug) {
       fetchData();
     }
-  }, [categoryId]);
+  }, [categorySlug]);
 
   const formatDate = (timestamp: any) => {
     if (!timestamp) return null;

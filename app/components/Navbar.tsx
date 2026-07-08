@@ -506,7 +506,7 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
       router.push(`/stores/${store.slug || store.id}`);
     } else if (type === 'category') {
       const category = item as Category;
-      router.push(`/categories/${category.id}`);
+      router.push(`/categories/${category.slug || category.id}`);
     } else {
       const coupon = item as Coupon;
       if (coupon.url?.trim()) {
@@ -525,7 +525,7 @@ export default function Navbar({ variant = "default" }: { variant?: "default" | 
     <div className="grid grid-cols-4 gap-4 p-5 w-[650px] bg-white rounded-b-xl shadow-xl border border-gray-100 mt-2">
       <div className="col-span-3 grid grid-cols-2 gap-x-6 gap-y-2">
         {categories.slice(0, 10).map((cat) => (
-          <Link key={cat.id} href={`/categories/${cat.id}`} className="flex items-center gap-2 group/item p-1.5 hover:bg-gray-50 rounded-lg transition-colors">
+          <Link key={cat.id} href={`/categories/${cat.slug || cat.id}`} className="flex items-center gap-2 group/item p-1.5 hover:bg-gray-50 rounded-lg transition-colors">
             <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] text-white font-bold" style={{ backgroundColor: cat.backgroundColor || '#ccc' }}>
               {cat.logoUrl ? <img src={cat.logoUrl} className="w-4 h-4 object-contain" /> : cat.name.charAt(0)}
             </div>
