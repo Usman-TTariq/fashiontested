@@ -136,11 +136,6 @@ export default function EditCouponPage() {
       return;
     }
 
-    if (!formData.description || formData.description.trim() === '') {
-      alert('Please enter the coupon title / offer text');
-      return;
-    }
-
     setSaving(true);
 
     const logoUrlToSave = logoUrl ? extractOriginalCloudinaryUrl(logoUrl) : undefined;
@@ -444,22 +439,21 @@ export default function EditCouponPage() {
 
           <div>
             <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-1">
-              Coupon Title <span className="text-red-500">*</span>
+              Description (Optional)
             </label>
             <textarea
               id="description"
               name="description"
-              placeholder="e.g. Use this code for 10% off first purchase"
+              placeholder="Description (optional)"
               value={formData.description || ''}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               rows={4}
-              required
             />
             <p className="mt-1 text-xs text-gray-500">
-              Shown on the coupon card. Store is selected above — do not repeat the store name here.
+              Shown on the coupon card when provided. Store is selected above — do not repeat the store name here.
             </p>
           </div>
 

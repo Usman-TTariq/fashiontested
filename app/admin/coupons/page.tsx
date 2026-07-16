@@ -14,7 +14,7 @@ import { getCategories, Category } from '@/lib/services/categoryService';
 import Link from 'next/link';
 import { extractOriginalCloudinaryUrl, isCloudinaryUrl } from '@/lib/utils/cloudinary';
 import { normalizeRedirectUrl } from '@/lib/utils/url';
-import { resolveCouponExpiryDate } from '@/lib/utils/couponExpiry';
+import { resolveCouponExpiryDate, formatCouponExpiryDisplay } from '@/lib/utils/couponExpiry';
 import { getStores, Store } from '@/lib/services/storeService';
 import { getCouponDisplayTitle } from '@/lib/utils/couponDisplay';
 import { sortCouponsByRecentActivity } from '@/lib/utils/couponOrder';
@@ -26,7 +26,9 @@ export default function CouponsPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(
+    () => urlSearchParams.get('create') === '1'
+  );
   const [formData, setFormData] = useState<Partial<Coupon>>({
     code: '',
     storeName: '',
@@ -75,6 +77,8 @@ export default function CouponsPage() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadPreviewRows, setUploadPreviewRows] = useState<string[][]>([]);
   const [uploadPreviewError, setUploadPreviewError] = useState<string | null>(null);
+  const [selectedCouponIds, setSelectedCouponIds] = useState<Set<string>>(new Set());
+  const [deletingSelected, setDeletingSelected] = useState(false);
 
   const parseCsv = (text: string): string[][] => {
     const rows: string[][] = [];
@@ -606,12 +610,6 @@ export default function CouponsPage() {
       return;
     }
 
-    if (!formData.description || formData.description.trim() === '') {
-      alert('Please enter the coupon title / offer text');
-      setIsCreating(false);
-      return;
-    }
-
     const validStoreIdsForName = selectedStoreIds.filter((id) => id && id.trim() !== '');
     let resolvedStoreName = formData.storeName?.trim() || '';
     if (validStoreIdsForName.length > 0) {
@@ -842,9 +840,69 @@ export default function CouponsPage() {
 
         // Always delete from Firebase as well (no-op if not there)
         await deleteCoupon(id);
+        setSelectedCouponIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
       } finally {
         fetchCoupons();
       }
+    }
+  };
+
+  const toggleCouponSelection = (id: string) => {
+    setSelectedCouponIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAllCouponsOnPage = () => {
+    const pageIds = paginatedCoupons.map((c) => c.id).filter((id): id is string => Boolean(id));
+    const allSelected = pageIds.length > 0 && pageIds.every((id) => selectedCouponIds.has(id));
+    setSelectedCouponIds((prev) => {
+      const next = new Set(prev);
+      if (allSelected) pageIds.forEach((id) => next.delete(id));
+      else pageIds.forEach((id) => next.add(id));
+      return next;
+    });
+  };
+
+  const handleDeleteSelected = async () => {
+    const ids = [...selectedCouponIds];
+    if (!ids.length) {
+      alert('Please select at least one coupon to delete.');
+      return;
+    }
+
+    if (!confirm(`Delete ${ids.length} selected coupon(s)? This cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingSelected(true);
+    try {
+      const response = await fetch('/api/coupons/delete-selected', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      });
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        alert(`Successfully deleted ${result.count ?? ids.length} coupon(s).`);
+        setSelectedCouponIds(new Set());
+        fetchCoupons();
+      } else {
+        alert(`Failed to delete coupons: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error deleting selected coupons:', error);
+      alert('Failed to delete selected coupons. Check console for details.');
+    } finally {
+      setDeletingSelected(false);
     }
   };
 
@@ -941,6 +999,7 @@ export default function CouponsPage() {
 
       if (response.ok && result.success) {
         alert(`Successfully deleted ${result.count ?? 'all'} coupons.`);
+        setSelectedCouponIds(new Set());
         fetchCoupons();
       } else {
         alert(`Failed to delete coupons: ${result.error || 'Unknown error'}`);
@@ -957,10 +1016,25 @@ export default function CouponsPage() {
     const trimmed = searchQuery.trim();
     if (trimmed) params.set('search', trimmed);
     if (currentPage > 1) params.set('page', String(currentPage));
+    if (showForm) params.set('create', '1');
     const qs = params.toString();
     const nextUrl = qs ? `${pathname}?${qs}` : pathname;
     router.replace(nextUrl, { scroll: false });
-  }, [searchQuery, currentPage, pathname, router]);
+  }, [searchQuery, currentPage, showForm, pathname, router]);
+
+  useEffect(() => {
+    setShowForm(urlSearchParams.get('create') === '1');
+  }, [urlSearchParams]);
+
+  const buildCouponsListHref = (options?: { create?: boolean }) => {
+    const params = new URLSearchParams();
+    const trimmed = searchQuery.trim();
+    if (trimmed) params.set('search', trimmed);
+    if (currentPage > 1) params.set('page', String(currentPage));
+    if (options?.create) params.set('create', '1');
+    const qs = params.toString();
+    return qs ? `${pathname}?${qs}` : pathname;
+  };
 
   const buildEditCouponHref = (couponId: string) => {
     const params = new URLSearchParams();
@@ -1000,12 +1074,24 @@ export default function CouponsPage() {
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
+  const allCouponsOnPageSelected =
+    paginatedCoupons.length > 0 &&
+    paginatedCoupons.every((coupon) => coupon.id && selectedCouponIds.has(coupon.id));
 
   return (
     <div>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Manage Coupons</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={handleDeleteSelected}
+            disabled={selectedCouponIds.size === 0 || deletingSelected}
+            className="cursor-pointer bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {deletingSelected
+              ? 'Deleting...'
+              : `Delete Selected${selectedCouponIds.size ? ` (${selectedCouponIds.size})` : ''}`}
+          </button>
           <button
             onClick={handleDeleteAll}
             className="cursor-pointer bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition whitespace-nowrap"
@@ -1022,12 +1108,21 @@ export default function CouponsPage() {
           >
             Upload Coupons
           </button>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition whitespace-nowrap"
-          >
-            {showForm ? 'Cancel' : 'Create New Coupon'}
-          </button>
+          {showForm ? (
+            <Link
+              href={buildCouponsListHref()}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition whitespace-nowrap inline-block text-center"
+            >
+              Cancel
+            </Link>
+          ) : (
+            <Link
+              href={buildCouponsListHref({ create: true })}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition whitespace-nowrap inline-block text-center"
+            >
+              Create New Coupon
+            </Link>
+          )}
         </div>
       </div>
 
@@ -1501,22 +1596,21 @@ export default function CouponsPage() {
 
             <div>
               <label htmlFor="description" className="block text-gray-700 text-sm font-semibold mb-2">
-                Coupon Title <span className="text-red-500">*</span>
+                Description (Optional)
               </label>
               <textarea
                 id="description"
                 name="description"
-                placeholder="e.g. Use this code for 10% off first purchase"
+                placeholder="Description (optional)"
                 value={formData.description || ''}
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows={3}
-                required
               />
               <p className="mt-1 text-xs text-gray-500">
-                Shown on the coupon card. Store is selected above — do not repeat the store name here.
+                Shown on the coupon card when provided. Store is selected above — do not repeat the store name here.
               </p>
             </div>
             <div>
@@ -1715,25 +1809,17 @@ export default function CouponsPage() {
                 />
               </div>
               <div>
-                <label htmlFor="expiryDate" className="block text-gray-700 text-sm font-semibold mb-2">
+                <label className="block text-gray-700 text-sm font-semibold mb-2">
                   Expiry Date
                 </label>
-                <input
-                  id="expiryDate"
-                  name="expiryDate"
-                  type="date"
-                  value={resolveCouponExpiryDate(formData.expiryDate)}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      expiryDate: e.target.value || null,
-                    })
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Defaults to 31 December {new Date().getFullYear()} if left unchanged.
-                </p>
+                <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                  <p className="text-sm text-gray-700">
+                    {formatCouponExpiryDisplay(formData.expiryDate)}
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Set automatically to 31 December {new Date().getFullYear()} — no manual entry needed.
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -1990,6 +2076,15 @@ export default function CouponsPage() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b">
                 <tr>
+                  <th className="px-3 sm:px-4 py-3 text-left">
+                    <input
+                      type="checkbox"
+                      checked={allCouponsOnPageSelected}
+                      onChange={toggleSelectAllCouponsOnPage}
+                      aria-label="Select all coupons on this page"
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                  </th>
                   <th className="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold">
                     Store Name
                   </th>
@@ -2025,6 +2120,16 @@ export default function CouponsPage() {
               <tbody>
                 {paginatedCoupons.map((coupon) => (
                   <tr key={coupon.id} className="border-b hover:bg-gray-50">
+                    <td className="px-3 sm:px-4 py-4">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(coupon.id && selectedCouponIds.has(coupon.id))}
+                        onChange={() => coupon.id && toggleCouponSelection(coupon.id)}
+                        disabled={!coupon.id}
+                        aria-label={`Select coupon ${coupon.code || coupon.id}`}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                    </td>
                     <td className="px-4 sm:px-6 py-4 text-sm font-semibold text-gray-900">
                       {getCouponStoreDisplayName(coupon)}
                     </td>

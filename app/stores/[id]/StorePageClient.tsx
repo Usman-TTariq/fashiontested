@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { getStoreById, getStoreBySlug, Store, getStores } from '@/lib/services/storeService';
-import { getCouponsByStoreId, Coupon } from '@/lib/services/couponService';
+import { Coupon } from '@/lib/services/couponService';
 import { sortCouponsByOrder } from '@/lib/utils/couponOrder';
 import { toJsDate } from '@/lib/utils/date';
 import Navbar from '@/app/components/Navbar';
@@ -100,18 +100,18 @@ export default function StorePageClient({
 
           if (storeData.id) {
             try {
-              const [firebaseCoupons, supabaseResponse, storesData] = await Promise.all([
-                getCouponsByStoreId(storeData.id),
-                fetch('/api/coupons/supabase').then((res) => res.json()).catch(() => ({ success: false, coupons: [] })),
-                getStores()
+              const [couponsResponse, storesData] = await Promise.all([
+                fetch(`/api/stores/${encodeURIComponent(storeData.id)}/coupons`)
+                  .then((res) => res.json())
+                  .catch(() => ({ success: false, coupons: [] })),
+                getStores(),
               ]);
 
-              const firebaseActive = (firebaseCoupons || []).filter((coupon) => coupon.isActive);
-              const supabaseList: Coupon[] = Array.isArray(supabaseResponse?.coupons) ? (supabaseResponse.coupons as Coupon[]) : [];
-              const supabaseForStore = supabaseList.filter((c) => Array.isArray(c.storeIds) && c.storeIds.includes(storeData!.id as string));
-
-              const merged = [...firebaseActive, ...supabaseForStore];
-              setCoupons(sortCouponsByOrder(merged, storeData.couponOrder));
+              const list: Coupon[] = Array.isArray(couponsResponse?.coupons)
+                ? (couponsResponse.coupons as Coupon[])
+                : [];
+              const active = list.filter((coupon) => coupon.isActive);
+              setCoupons(sortCouponsByOrder(active, storeData.couponOrder));
               setAllStores(storesData);
             } catch (couponErr) {
               console.error('Error fetching coupons for store:', couponErr);

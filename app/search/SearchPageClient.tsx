@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense, useMemo } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { getCoupons, Coupon } from '@/lib/services/couponService';
@@ -21,35 +21,19 @@ function SearchContent() {
   const [loading, setLoading] = useState(true);
   const [filteredCoupons, setFilteredCoupons] = useState<Coupon[]>([]);
   const [filteredStores, setFilteredStores] = useState<Store[]>([]);
-  const [supabaseStores, setSupabaseStores] = useState<Store[]>([]);
-  const newStores = useMemo(
-    () => [...stores, ...supabaseStores],
-    [stores, supabaseStores]
-  );
-  // console.log("filteredStores: ", filteredStores);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [couponsData, storesData, categoriesData, supabaseResponse] = await Promise.all([
+        const [couponsData, storesData, categoriesData] = await Promise.all([
           getCoupons(),
           getStores(),
           getCategories(),
-          fetch('/api/stores/supabase')
-            .then((res) => res.json())
-            .catch((err) => {
-              console.error('Error fetching Supabase stores:', err);
-              return { success: false, stores: [] };
-            })
         ]);
-        const supabaseList: Store[] = Array.isArray(supabaseResponse?.stores)
-          ? (supabaseResponse.stores as Store[])
-          : [];
         setCoupons(couponsData.filter(c => c.isActive));
         setStores(storesData);
         setCategories(categoriesData);
-        setSupabaseStores(supabaseList);
       } catch (error) {
         console.error('Error fetching search data:', error);
       } finally {
@@ -87,7 +71,7 @@ function SearchContent() {
     setFilteredCoupons(filteredC);
 
     // Filter stores
-    let filteredS = newStores;
+    let filteredS = stores;
 
     if (searchTerm) {
       filteredS = filteredS.filter(s =>
@@ -97,7 +81,7 @@ function SearchContent() {
     }
 
     setFilteredStores(filteredS);
-  }, [query, categoryId, coupons, newStores]);
+  }, [query, categoryId, coupons, stores]);
 
   const selectedCategory = categories.find(c => c.id === categoryId);
 
